@@ -57,10 +57,10 @@ let
 
           # rclone specific
           "env.PATH=/run/wrappers/bin" # for fusermount3
-          "config=${toString values.configPath}"
-          "cache_dir=${toString values.cacheDir}"
-          "uid=${values.uid}"
-          "gid=${values.gid}"
+          "config=${values.configPath}"
+          "cache_dir=${values.cacheDir}"
+          "uid=${toString values.uid}"
+          "gid=${toString values.gid}"
           "dir-perms=770"
           "file-perms=0664"
           "umask=002"
