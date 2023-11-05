@@ -31,7 +31,7 @@
   modules.ocis = { 
     enable = true;
     hostName = "cloud.pingbit.de";
-    dataDir = "/mnt/ocis-data"
+    dataDir = "/mnt/ocis-data";
   };
   
 
