@@ -29,7 +29,8 @@
     hostName = "cloud.pingbit.de";
   };
   # Ocis remote data
-  modules.rclone.mounts."${config.modules.ocis.dataDir}" = {
+  # modules.rclone.mounts."${config.modules.ocis.dataDir}" = {
+  modules.rclone.mounts."/var/lib/ocis" = {
     configPath = config.age.secrets.rclone-conf.path;
     remote = "azure-data:documents";
     uid = config.ids.uids.ocis;
