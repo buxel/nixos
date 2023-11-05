@@ -23,15 +23,15 @@
 
   
   # Ocis remote data
-  modules.rclone.mounts."/mnt/ocis-data" = {
+  modules.rclone.mounts."/mnt/documents" = {
     configPath = config.age.secrets.rclone-conf.path;
-    remote = "azure-data:ocis-data";
+    remote = "azure-data:documents";
   };  
   # Ocis
   modules.ocis = { 
     enable = true;
     hostName = "cloud.pingbit.de";
-    dataDir = "/mnt/ocis-data";
+    dataDir = "/mnt/documents";
   };
   
 
