@@ -75,7 +75,7 @@ in {
           "/mnt/rclone" = {
             configPath = "/etc/rclone/rclone.conf";
             remote = "my-remote:";
-            cacheDir = "/var/lib/rclone"
+            cacheDir = "/var/lib/rclone";
           };
         };
         type = with types; attrsOf (submodule mountOpts);
