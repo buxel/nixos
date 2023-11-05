@@ -22,13 +22,18 @@
   networking.extraHosts = "";
 
   
-  modules.rclone = {
-    enable = true;
+  modules.rclone.mounts."/mnt/photos" = {
     configPath = config.age.secrets.rclone-conf.path;
     remote = "azure-data:photos";
-    mountPath = "/mnt/photos";
-    requiredBy = ["immich.service"];
   };
+
+  # modules.rclone = {
+  #   enable = true;
+  #   configPath = config.age.secrets.rclone-conf.path;
+  #   remote = "azure-data:photos";
+  #   mountPath = "/mnt/photos";
+  #   requiredBy = ["immich.service"];
+  # };
 
 
   # Web services
