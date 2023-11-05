@@ -22,13 +22,13 @@
   networking.extraHosts = "";
 
   
-  # Ocis remote data
-  modules.rclone.mounts."/mnt/documents" = {
-    configPath = config.age.secrets.rclone-conf.path;
-    remote = "azure-data:documents";
-    uid = config.ids.uids.ocis;
-    gid = config.ids.gids.ocis;
-  };  
+  # # Ocis remote data
+  # modules.rclone.mounts."/mnt/documents" = {
+  #   configPath = config.age.secrets.rclone-conf.path;
+  #   remote = "azure-data:documents";
+  #   uid = config.ids.uids.ocis;
+  #   gid = config.ids.gids.ocis;
+  # };  
   # Ocis
   modules.ocis = { 
     enable = false;
