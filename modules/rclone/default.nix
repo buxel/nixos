@@ -53,10 +53,10 @@ let
           "dir-perms=770"
           "file-perms=0664"
           "umask=002"
-          # "allow-non-empty"
+          "allow-non-empty"
           # "log-level=INFO"
-          # "vfs-cache-mode full"
-          # "vfs-cache-max-size 20G"
+          "vfs-cache-mode full"
+          "vfs-cache-max-size 10G"
         ];
       };
     in
