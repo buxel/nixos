@@ -29,6 +29,16 @@ let
         type = types.path; 
         description = "RClone config file.";
       };
+
+      uid = mkOption { 
+        type = types.ints.u32; 
+        description = "Override the UID field set by the filesystem.";
+      };
+
+      gid = mkOption { 
+        type = types.ints.u32; 
+        description = "Override the GID field set by the filesystem.";
+      };
     };
   };
 
@@ -49,7 +59,8 @@ let
           "env.PATH=/run/wrappers/bin" # for fusermount3
           "config=${values.configPath}"
           "cache_dir=${values.cacheDir}"
-          "vfs-cache-mode=full"
+          "uid=${values.uid}"
+          "gid=${values.gid}"
           "dir-perms=770"
           "file-perms=0664"
           "umask=002"
