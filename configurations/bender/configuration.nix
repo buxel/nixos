@@ -22,19 +22,20 @@
   networking.extraHosts = "";
 
   
+
+    # Ocis
+  modules.ocis = { 
+    enable = true;
+    hostName = "cloud.pingbit.de";
+  };
   # Ocis remote data
-  modules.rclone.mounts."/mnt/documents" = {
+  modules.rclone.mounts."${config.modules.ocis.dataDir}" = {
     configPath = config.age.secrets.rclone-conf.path;
     remote = "azure-data:documents";
     uid = config.ids.uids.ocis;
     gid = config.ids.gids.ocis;
   };  
-  # Ocis
-  modules.ocis = { 
-    enable = true;
-    hostName = "cloud.pingbit.de";
-    dataDir = "/mnt/documents";
-  };
+
   
 
   # Immich remote data
