@@ -22,15 +22,25 @@
   networking.extraHosts = "";
 
   
+  # Ocis remote data
+  modules.rclone.mounts."/mnt/ocis-data" = {
+    configPath = config.age.secrets.rclone-conf.path;
+    remote = "azure-data:ocis-data";
+  };  
+  # Ocis
+  modules.ocis = { 
+    enable = true;
+    hostName = "cloud.pingbit.de";
+    dataDir = "/mnt/ocis-data"
+  };
+  
+
+  # Immich remote data
   modules.rclone.mounts."/mnt/photos" = {
     configPath = config.age.secrets.rclone-conf.path;
     remote = "azure-data:photos";
   };
-
-  # Web services
-  modules.ocis.enable = true;
-  modules.ocis.hostName = "cloud.pingbit.de";
-
+  # Immich 
   modules.immich = {
     enable = true;
     hostName = "photos.pingbit.de";
