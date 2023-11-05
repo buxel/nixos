@@ -74,6 +74,7 @@ let
           "file-perms=0664"
           "umask=002"
           "allow-non-empty"
+          "allow-other"
           "vfs-cache-mode=full"
           "vfs-cache-max-size=10G"
         ] ++ values.mountOpts;
