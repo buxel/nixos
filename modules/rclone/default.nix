@@ -1,4 +1,4 @@
-# modules.rclone.enable = true;
+# inspired by https://github.com/NixOS/nixpkgs/blob/nixos-23.05/nixos/modules/services/networking/wg-quick.nix
 { config, lib, pkgs, utils, ... }:
 
 let
@@ -17,12 +17,6 @@ let
       remote = mkOption {
         type = types.str;
         description = "Name of rclone remote defined in RClone config. Keep in mind to add the `:` after the name.";
-      };
-
-      mountPath = mkOption {
-        type = types.path;
-        default = "/mnt/rclone";
-        description = "Mointpoint for rclone remote";
       };
 
       cacheDir = mkOption {
@@ -77,6 +71,13 @@ in {
       mounts = mkOption {
         description = "Rcloune mounts.";
         default = {};
+        example = {
+          "/mnt/rclone" = {
+            configPath = "/etc/rclone/rclone.conf";
+            remote = "my-remote:";
+            cacheDir = "/var/lib/rclone"
+          };
+        };
         type = with types; attrsOf (submodule mountOpts);
       };
   };
