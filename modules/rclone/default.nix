@@ -32,11 +32,13 @@ let
 
       uid = mkOption { 
         type = types.ints.u32; 
+        default = 1000;
         description = "Override the UID field set by the filesystem.";
       };
 
       gid = mkOption { 
         type = types.ints.u32; 
+        default = 1000;
         description = "Override the GID field set by the filesystem.";
       };
     };
