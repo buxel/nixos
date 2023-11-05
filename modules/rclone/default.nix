@@ -41,6 +41,13 @@ let
         default = 1000;
         description = "Override the GID field set by the filesystem.";
       };
+
+      mountOpts = mkOption {
+        type = types.listOf (types.str);
+        default = [];
+        description = "Additional paramenters passed as mount options";
+        example = ["noauto" "_netdev"];
+      };
     };
   };
 
@@ -67,10 +74,9 @@ let
           "file-perms=0664"
           "umask=002"
           "allow-non-empty"
-          # "log-level=INFO"
           "vfs-cache-mode=full"
           "vfs-cache-max-size=10G"
-        ];
+        ] ++ values.mountOpts;
       };
     in
     nameValuePair "${name}" fsValue;

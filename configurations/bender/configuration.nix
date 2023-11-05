@@ -31,7 +31,7 @@
   };  
   # Ocis
   modules.ocis = { 
-    enable = true;
+    enable = false;
     hostName = "cloud.pingbit.de";
     dataDir = "/mnt/documents";
   };
@@ -41,6 +41,9 @@
   modules.rclone.mounts."/mnt/photos" = {
     configPath = config.age.secrets.rclone-conf.path;
     remote = "azure-data:photos";
+    uid = config.ids.uids.immich;
+    gid = config.ids.gids.immich;
+    mountOpts = [ "log-level=INFO" ];
   };
   # Immich 
   modules.immich = {
