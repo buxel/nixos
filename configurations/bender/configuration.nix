@@ -28,14 +28,14 @@
     enable = true;
     hostName = "cloud.pingbit.de";
   };
-  # Ocis remote data
-  # modules.rclone.mounts."${config.modules.ocis.dataDir}" = {
-  # modules.rclone.mounts."/var/lib/ocis" = {
-  #   configPath = config.age.secrets.rclone-conf.path;
-  #   remote = "azure-data:documents";
-  #   uid = config.ids.uids.ocis;
-  #   gid = config.ids.gids.ocis;
-  # };  
+  # Ocis remote user data
+  modules.rclone.mounts."${config.modules.ocis.dataDir}" = {
+  modules.rclone.mounts."/var/lib/ocis/storage/users" = {
+    configPath = config.age.secrets.rclone-conf.path;
+    remote = "azure-data:ocis-storage-user";
+    uid = config.ids.uids.ocis;
+    gid = config.ids.gids.ocis;
+  };  
 
   
 
