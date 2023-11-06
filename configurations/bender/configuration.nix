@@ -52,4 +52,25 @@
     hostName = "photos.pingbit.de";
     photosDir = "/mnt/photos";
   };
+
+
+  ## Testing
+
+systemd.mounts = [{
+  description = "blobfuse mount test";
+  after = [ "network-online.target" ];
+  requires = [ "network-online.target" ];
+  user = "me";
+  what = "ocis";
+  where = "/home/me/mnt";
+  type = "azure-storage-fuse";
+  options = "defaults,_netdev,--config-file=/home/me/blob-ocis.yaml,allow_other "; 
+}]; 
+
+systemd.automounts = [{
+  after = [ "network-online.target" ];
+  before = [ "remote-fs.target" ];
+  where = cfg.mountPath;
+  wantedBy = [ "multi-user.target" ];
+}];
 }
