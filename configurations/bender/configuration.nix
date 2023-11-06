@@ -63,7 +63,7 @@ systemd.mounts = [{
   description = "blobfuse mount test";
   after = [ "network-online.target" ];
   requires = [ "network-online.target" ];
-  what = "blobfuse"; #"azure-storage-fuse";
+  what = "blobfuse2"; #"azure-storage-fuse";
   where = "/home/me/mnt";
   type = "fuse";
   options = "defaults,_netdev,--config-file=/home/me/blob-ocis.yaml,allow_other "; 
