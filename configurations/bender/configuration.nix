@@ -61,9 +61,9 @@ systemd.mounts = [{
   description = "blobfuse mount test";
   after = [ "network-online.target" ];
   requires = [ "network-online.target" ];
-  what = "ocis";
+  what = "blobfuse2";
   where = "/home/me/mnt";
-  type = "blobfuse2";
+  type = "fuse";
   options = "defaults,_netdev,--config-file=/home/me/blob-ocis.yaml,allow_other "; 
 }]; 
 
