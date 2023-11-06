@@ -63,7 +63,7 @@ systemd.mounts = [{
   requires = [ "network-online.target" ];
   what = "ocis";
   where = "/home/me/mnt";
-  type = "azure-storage-fuse";
+  type = "blobfuse2";
   options = "defaults,_netdev,--config-file=/home/me/blob-ocis.yaml,allow_other "; 
 }]; 
 
