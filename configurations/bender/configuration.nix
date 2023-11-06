@@ -28,16 +28,15 @@
     enable = true;
     hostName = "cloud.pingbit.de";
   };
-  # Ocis remote user data
+  # Ocis remote user data 
+  # NOTE: rclone does not support symlinks, which OCIS uses.
   # modules.rclone.mounts."${config.modules.ocis.dataDir}" = {
-  modules.rclone.mounts."/var/lib/ocis/storage/users" = {
-    configPath = config.age.secrets.rclone-conf.path;
-    remote = "azure-data:ocis-storage-user";
-    uid = config.ids.uids.ocis;
-    gid = config.ids.gids.ocis;
-  };  
-
-  
+  # modules.rclone.mounts."/var/lib/ocis/storage/users" = {
+  #   configPath = config.age.secrets.rclone-conf.path;
+  #   remote = "azure-data:ocis-storage-user";
+  #   uid = config.ids.uids.ocis;
+  #   gid = config.ids.gids.ocis;
+  # }; 
 
   # Immich remote data
   modules.rclone.mounts."/mnt/photos" = {
