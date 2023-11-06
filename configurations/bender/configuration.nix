@@ -56,6 +56,7 @@
 
   ## Testing
 system.fsPackages = [ pkgs.unstable.blobfuse ];
+systemd.packages = [ pkgs.unstable.blobfuse ];
 
 systemd.mounts = [{
   description = "blobfuse mount test";
