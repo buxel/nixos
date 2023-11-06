@@ -60,7 +60,6 @@ systemd.mounts = [{
   description = "blobfuse mount test";
   after = [ "network-online.target" ];
   requires = [ "network-online.target" ];
-  user = "me";
   what = "ocis";
   where = "/home/me/mnt";
   type = "azure-storage-fuse";
