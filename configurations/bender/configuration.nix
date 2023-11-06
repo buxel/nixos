@@ -55,24 +55,51 @@
 
 
   ## Testing
-environment.systemPackages = [ pkgs.unstable.blobfuse ];
-system.fsPackages = [ pkgs.unstable.blobfuse ];
-systemd.packages = [ pkgs.unstable.blobfuse ];
+  # environment.systemPackages = [ pkgs.unstable.blobfuse ];
+  # system.fsPackages = [ pkgs.unstable.blobfuse ];
+  package = pkgs.unstable.blobfuse;
+  systemd.packages = [ package ];
+  mount = "/home/me/mount";
+  systemd.services."mnt-blobfuse" = {
+      description = "Mount azure blob storage";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network-online.target" ];
+      requires = [ "network-online.target" ];
+      serviceConfig = {
+        ExecStartPre = [
+          "${pkgs.coreutils}/bin/mkdir -m 0500 -pv ${mount}"
+          "${pkgs.e2fsprogs}/bin/chattr +i ${mount}"  # Stop files being accidentally written to unmounted directory
+        ];
+        ExecStart = let
+          options = [
+            # "defaults"
+            # "allow_other"
+            # "_netdev"
+            "--config-file=/home/me/blob-ocis.yaml"
+          ];
+        in
+          "${package}/bin/azure-storage-fuse mount ${mount} --config-file=/home/me/blob-ocis.yaml "
+            + lib.concatMapStringsSep " " (opt: "-o ${opt}") options;
+        ExecStopPost = "-${pkgs.fuse}/bin/fusermount -u ${mount}";
+        KillMode = "process";
+        Restart = "on-failure";
+      };
+    };
 
-systemd.mounts = [{
-  description = "blobfuse mount test";
-  after = [ "network-online.target" ];
-  requires = [ "network-online.target" ];
-  what = "blobfuse2"; #"azure-storage-fuse";
-  where = "/home/me/mnt";
-  type = "fuse";
-  options = "defaults,_netdev,--config-file=/home/me/blob-ocis.yaml,allow_other "; 
-}]; 
+# systemd.mounts = [{
+#   description = "blobfuse mount test";
+#   after = [ "network-online.target" ];
+#   requires = [ "network-online.target" ];
+#   what = "blobfuse2"; #"azure-storage-fuse";
+#   where = "/home/me/mnt";
+#   type = "fuse";
+#   options = "defaults,_netdev,--config-file=/home/me/blob-ocis.yaml,allow_other "; 
+# }]; 
 
-systemd.automounts = [{
-  after = [ "network-online.target" ];
-  before = [ "remote-fs.target" ];
-  where = "/home/me/mnt";
-  wantedBy = [ "multi-user.target" ];
-}];
+# systemd.automounts = [{
+#   after = [ "network-online.target" ];
+#   before = [ "remote-fs.target" ];
+#   where = "/home/me/mnt";
+#   wantedBy = [ "multi-user.target" ];
+# }];
 }
