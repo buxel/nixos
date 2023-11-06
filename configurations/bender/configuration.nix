@@ -76,7 +76,7 @@
             "--config-file=/home/me/blob-ocis.yaml"
           ];
         in
-          "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse mount /home/me/mount --config-file=/home/me/blob-ocis.yaml "
+          "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse mount /home/me/mount --foreground --config-file=/home/me/blob-ocis.yaml "
             + lib.concatMapStringsSep " " (opt: "-o ${opt}") options;
         ExecStopPost = "-${pkgs.fuse}/bin/fusermount -u /home/me/mount";
         KillMode = "process";
