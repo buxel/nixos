@@ -57,9 +57,7 @@
   ## Testing
   # environment.systemPackages = [ pkgs.unstable.blobfuse ];
   # system.fsPackages = [ pkgs.unstable.blobfuse ];
-  package = pkgs.unstable.blobfuse;
-  systemd.packages = [ package ];
-  mount = "/home/me/mount";
+
   systemd.services."mnt-blobfuse" = {
       description = "Mount azure blob storage";
       wantedBy = [ "multi-user.target" ];
@@ -67,8 +65,8 @@
       requires = [ "network-online.target" ];
       serviceConfig = {
         ExecStartPre = [
-          "${pkgs.coreutils}/bin/mkdir -m 0500 -pv ${mount}"
-          "${pkgs.e2fsprogs}/bin/chattr +i ${mount}"  # Stop files being accidentally written to unmounted directory
+          "${pkgs.coreutils}/bin/mkdir -m 0500 -pv /home/me/mount"
+          "${pkgs.e2fsprogs}/bin/chattr +i /home/me/mount"  # Stop files being accidentally written to unmounted directory
         ];
         ExecStart = let
           options = [
@@ -78,9 +76,9 @@
             "--config-file=/home/me/blob-ocis.yaml"
           ];
         in
-          "${package}/bin/azure-storage-fuse mount ${mount} --config-file=/home/me/blob-ocis.yaml "
+          "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse mount /home/me/mount --config-file=/home/me/blob-ocis.yaml "
             + lib.concatMapStringsSep " " (opt: "-o ${opt}") options;
-        ExecStopPost = "-${pkgs.fuse}/bin/fusermount -u ${mount}";
+        ExecStopPost = "-${pkgs.fuse}/bin/fusermount -u /home/me/mount";
         KillMode = "process";
         Restart = "on-failure";
       };
