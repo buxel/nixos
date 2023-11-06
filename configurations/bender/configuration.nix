@@ -70,7 +70,7 @@ systemd.mounts = [{
 systemd.automounts = [{
   after = [ "network-online.target" ];
   before = [ "remote-fs.target" ];
-  where = cfg.mountPath;
+  where = "/home/me/mnt";
   wantedBy = [ "multi-user.target" ];
 }];
 }
