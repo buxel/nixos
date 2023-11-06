@@ -55,6 +55,7 @@
 
 
   ## Testing
+environment.systemPackages = [ pkgs.unstable.blobfuse ];
 system.fsPackages = [ pkgs.unstable.blobfuse ];
 systemd.packages = [ pkgs.unstable.blobfuse ];
 
