@@ -89,7 +89,7 @@
     after = [ "network-online.target" ];
     requires = [ "network-online.target" ];
     what = "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse"; #"azure-storage-fuse";
-    where = "/mnt/az-blob";
+    where = "/mnt/azblob";
     type = "fuse3";
     mountConfig = {
       SloppyOptions = true;
@@ -101,7 +101,7 @@
     enable = true;
     after = [ "network-online.target" ];
     before = [ "remote-fs.target" ];
-    where = "/mnt/az-blob";
+    where = "/mnt/azblob";
     wantedBy = [ "multi-user.target" ];
   }];
 }
