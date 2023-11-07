@@ -20,7 +20,7 @@
   modules.ddns.enable = true;
   modules.whoami.enable = true;
   networking.extraHosts = "";
-  networking.nameservers = [ "1.1.1.1" "9.9.9.9" ]  
+  networking.nameservers = [ "1.1.1.1" "9.9.9.9" ];
 
     # Ocis
   modules.ocis = { 
