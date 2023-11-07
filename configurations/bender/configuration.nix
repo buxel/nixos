@@ -90,7 +90,7 @@
     requires = [ "network-online.target" ];
     what = "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse"; #"azure-storage-fuse";
     where = "/home/me/mnt";
-    type = "fuse";
+    type = "fuse3";
     options = "defaults,_netdev,allow_other,--config-file=/home/me/blob-ocis.yaml "; 
   }]; 
 
