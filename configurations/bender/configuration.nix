@@ -85,7 +85,7 @@
   #   };
 
   systemd.mounts = [{
-    enabled = true;
+    enable = true;
     description = "blobfuse mount test";
     after = [ "network-online.target" ];
     requires = [ "network-online.target" ];
