@@ -39,6 +39,7 @@
   # }; 
 
   # Immich remote data
+  # TODO: maybe inject this into the immich systemd unit: https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#RequiresMountsFor=
   modules.rclone.mounts."/mnt/photos" = {
     configPath = config.age.secrets.rclone-conf.path;
     remote = "azure-data:photos";
@@ -91,6 +92,9 @@
     what = "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse"; #"azure-storage-fuse";
     where = "/home/me/mnt";
     type = "fuse3";
+    mountConfig = {
+      SloppyOptions = true;
+    };
     options = "defaults,_netdev,allow_other,--config-file=/home/me/blob-ocis.yaml "; 
   }]; 
 
