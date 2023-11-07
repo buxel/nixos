@@ -20,8 +20,7 @@
   modules.ddns.enable = true;
   modules.whoami.enable = true;
   networking.extraHosts = "";
-
-  
+  networking.nameservers = [ "1.1.1.1" "9.9.9.9" ]  
 
     # Ocis
   modules.ocis = { 
@@ -95,10 +94,11 @@
     mountConfig = {
       SloppyOptions = true;
     };
-    options = "defaults,_netdev,allow_other,--config-file=/home/me/blob-ocis.yaml "; 
+    options = "defaults,_netdev,allow_other,--config-file=/home/me/blob-ocis.yaml"; 
   }]; 
 
   systemd.automounts = [{
+    enable = true;
     after = [ "network-online.target" ];
     before = [ "remote-fs.target" ];
     where = "/home/me/mnt";
