@@ -62,6 +62,7 @@
     after = [ "network-online.target" ];
     requires = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
+    before = [ "docker-ocis.service" ];
     what = "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse"; #"azure-storage-fuse";
     where = "/var/lib/ocis";
     type = "fuse3";
