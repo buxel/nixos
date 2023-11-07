@@ -91,7 +91,7 @@
     what = "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse"; #"azure-storage-fuse";
     where = "/home/me/mnt";
     type = "fuse";
-    options = "defaults,_netdev,--config-file=/home/me/blob-ocis.yaml,allow_other "; 
+    options = "defaults, allow_other, _netdev, --foreground, --config-file=/home/me/blob-ocis.yaml"; 
   }]; 
 
   systemd.automounts = [{
