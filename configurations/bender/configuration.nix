@@ -55,34 +55,6 @@
 
 
   ## Testing
-  # environment.systemPackages = [ pkgs.unstable.blobfuse ];
-  # system.fsPackages = [ pkgs.unstable.blobfuse ];
-
-  # systemd.services."mnt-blobfuse" = {
-  #     description = "Mount azure blob storage";
-  #     wantedBy = [ "multi-user.target" ];
-  #     after = [ "network-online.target" ];
-  #     requires = [ "network-online.target" ];
-  #     serviceConfig = {
-  #       ExecStartPre = [
-  #         "${pkgs.coreutils}/bin/mkdir -m 0500 -pv /home/me/mount"
-  #         "${pkgs.e2fsprogs}/bin/chattr +i /home/me/mount"  # Stop files being accidentally written to unmounted directory
-  #       ];
-  #       ExecStart = let
-  #         options = [
-  #           # "defaults"
-  #           # "allow_other"
-  #           # "_netdev"
-  #           "--config-file=/home/me/blob-ocis.yaml"
-  #         ];
-  #       in
-  #         "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse mount /home/me/mount --foreground --config-file=/home/me/blob-ocis.yaml " # TODO: use --container-name=container2 to override config
-  #           + lib.concatMapStringsSep " " (opt: "-o ${opt}") options;
-  #       ExecStopPost = "-${pkgs.fuse}/bin/fusermount -u /home/me/mount";
-  #       KillMode = "process";
-  #       Restart = "on-failure";
-  #     };
-  #   };
 
   systemd.mounts = [{
     enable = true;
@@ -91,7 +63,7 @@
     requires = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
     what = "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse"; #"azure-storage-fuse";
-    where = "/mnt/azblob";
+    where = "/var/lib/ocis";
     type = "fuse3";
     mountConfig = {
       SloppyOptions = true;
