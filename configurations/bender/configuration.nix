@@ -85,6 +85,7 @@
   #   };
 
   systemd.mounts = [{
+    enabled = true;
     description = "blobfuse mount test";
     after = [ "network-online.target" ];
     requires = [ "network-online.target" ];
@@ -97,11 +98,11 @@
     options = "defaults,_netdev,allow_other,--config-file=/home/me/blob-ocis.yaml"; 
   }]; 
 
-  systemd.automounts = [{
-    enable = true;
-    after = [ "network-online.target" ];
-    before = [ "remote-fs.target" ];
-    where = "/mnt/azblob";
-    wantedBy = [ "multi-user.target" ];
-  }];
+  # systemd.automounts = [{
+  #   enable = true;
+  #   after = [ "network-online.target" ];
+  #   before = [ "remote-fs.target" ];
+  #   where = "/mnt/azblob";
+  #   wantedBy = [ "multi-user.target" ];
+  # }];
 }
