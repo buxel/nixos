@@ -89,6 +89,7 @@
     description = "blobfuse mount test";
     after = [ "network-online.target" ];
     requires = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
     what = "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse"; #"azure-storage-fuse";
     where = "/mnt/azblob";
     type = "fuse3";
