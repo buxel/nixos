@@ -60,10 +60,9 @@ let
           "defaults"
           "_netdev"
           "allow_other"
-          # "x-systemd.automount"
-          # "env.PATH=/run/wrappers/bin" # for fusermount3
-          # "uid=${toString values.uid}"
-          # "gid=${toString values.gid}"
+          "x-systemd.automount"
+          "uid=${toString values.uid}"
+          "gid=${toString values.gid}"
 
           # blobfuse args 
           "--config-file=${values.configPath}"
