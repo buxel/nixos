@@ -57,9 +57,9 @@ let
         device = "${cfg.package}/bin/azure-storage-fuse";
         fsType = "fuse3";
         options = [
-          "rw"
-          "allow_other"
+          "defaults"
           "_netdev"
+          "allow_other"
           "x-systemd.automount"
           "env.PATH=/run/wrappers/bin" # for fusermount3
           "uid=${toString values.uid}"
