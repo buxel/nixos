@@ -26,16 +26,16 @@
   modules.ocis = { 
     enable = true;
     hostName = "cloud.pingbit.de";
+    dataDir = "/mnt/ocis"
   };
   # Ocis remote user data 
   # NOTE: rclone does not support symlinks, which OCIS uses.
-  # modules.rclone.mounts."${config.modules.ocis.dataDir}" = {
-  # modules.rclone.mounts."/var/lib/ocis/storage/users" = {
-  #   configPath = config.age.secrets.rclone-conf.path;
-  #   remote = "azure-data:ocis-storage-user";
-  #   uid = config.ids.uids.ocis;
-  #   gid = config.ids.gids.ocis;
-  # }; 
+  modules.blobfuse."${config.modules.ocis.dataDir}" = {
+    configPath = config.age.secrets.blobfuse-conf.path;
+    container = "ocis";
+    uid = config.ids.uids.ocis;
+    gid = config.ids.gids.ocis;
+  }; 
 
   # Immich remote data
   # TODO: maybe inject this into the immich systemd unit: https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#RequiresMountsFor=
@@ -56,21 +56,20 @@
 
   ## Testing
 
-  systemd.mounts = [{
-    enable = true;
-    description = "blobfuse mount test";
-    after = [ "network-online.target" ];
-    requires = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
-    before = [ "docker-ocis.service" ];
-    what = "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse"; #"azure-storage-fuse";
-    where = "/var/lib/ocis";
-    type = "fuse3";
-    mountConfig = {
-      SloppyOptions = true;
-    };
-    options = "defaults,_netdev,allow_other,--config-file=/home/me/blob-ocis.yaml"; 
-  }]; 
+  # systemd.mounts = [{
+  #   enable = true;
+  #   description = "blobfuse mount test";
+  #   after = [ "network-online.target" ];
+  #   requires = [ "network-online.target" ];
+  #   wantedBy = [ "multi-user.target" ];
+  #   what = "${pkgs.unstable.blobfuse}/bin/azure-storage-fuse"; #"azure-storage-fuse";
+  #   where = "/var/lib/ocis";
+  #   type = "fuse3";
+  #   mountConfig = {
+  #     SloppyOptions = true;
+  #   };
+  #   options = "defaults,_netdev,allow_other,--config-file=/home/me/blob-ocis.yaml"; 
+  # }]; 
 
   # systemd.automounts = [{
   #   enable = true;

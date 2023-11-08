@@ -4,6 +4,7 @@
 {
 
   basic-auth = ./basic-auth.age;
+  blobfuse-conf = ./blobfuse-conf.age;
   cloudflare-env = ./cloudflare-env.age;
   immich-env = ./immich-env.age;
   ocis-env = ./ocis-env.age;
