@@ -67,7 +67,7 @@ let
           "allow-other"
 
           # blobfuse args 
-          "--config-file==${values.configPath}"
+          "--config-file=${values.configPath}"
           "--container-name=${values.container}"
           "--allow-other"
           # "--tmp-path=/tmp/"
