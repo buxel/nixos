@@ -55,7 +55,7 @@ let
     let
       fsValue = {
         device = "${cfg.package}/bin/azure-storage-fuse";
-        fsType = "fuse3";
+        fsType = "fuse";
         options = [
           "defaults"
           "_netdev"
