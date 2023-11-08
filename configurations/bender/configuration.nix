@@ -31,8 +31,8 @@
   # Ocis remote user data 
   # NOTE: rclone does not support symlinks, which OCIS uses.
   modules.blobfuse.package = pkgs.unstable.blobfuse;
-  #modules.blobfuse.mounts."${config.modules.ocis.dataDir}" = {
-  modules.blobfuse.mounts."/mnt/ocis2" = {
+  #modules.blobfuse.mounts."/mnt/ocis2" = {
+  modules.blobfuse.mounts."${config.modules.ocis.dataDir}" = {
     configPath = config.age.secrets."blobfuse.yaml".path;
     container = "ocis";
     uid = config.ids.uids.ocis;
