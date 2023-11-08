@@ -59,7 +59,7 @@ let
   generateMount = name: values:
     let
       fsValue = {
-        device = ${cfg.package}/bin/azure-storage-fuse;
+        device = "${cfg.package}/bin/azure-storage-fuse";
         fsType = "fuse3";
         options = [
           "rw"
