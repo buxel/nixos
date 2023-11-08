@@ -61,6 +61,7 @@ let
           "_netdev"
           "allow_other"
           "x-systemd.automount"
+          "x-systemd.mount-timeout=10s"
           "uid=${toString values.uid}"
           "gid=${toString values.gid}"
 
