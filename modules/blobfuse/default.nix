@@ -1,4 +1,4 @@
-# modules.blobfuse.<mountpath> = {};
+# modules.blobfuse.mounts.<mountpath> = {};
 # blobfuse in fstabe: https://learn.microsoft.com/en-us/answers/questions/1351939/how-can-i-get-permanent-blob-container-mount-with
 { config, lib, pkgs, utils, ... }:
 
@@ -14,12 +14,7 @@ let
   inherit (utils.systemdUtils.lib) unitNameType;
 
   mountOpts = {
-    options = {
-      package = mkOption {
-        type = types.package;
-        default = pkgs.blobfuse;
-        description = "blobfuse package to use.";        
-      };
+    options = {     
 
       configPath = mkOption { 
         type = types.path; 
@@ -87,6 +82,12 @@ in {
   ###### interface
 
   options.modules.blobfuse = {
+      package = mkOption {
+        type = types.package;
+        default = pkgs.blobfuse;
+        description = "blobfuse package to use.";        
+      };
+
       mounts = mkOption {
         description = "blobfuse mounts.";
         default = {};
