@@ -26,7 +26,7 @@
   modules.ocis = { 
     enable = true;
     hostName = "cloud.pingbit.de";
-    dataDir = "/mnt/ocis"
+    dataDir = "/mnt/ocis";
   };
   # Ocis remote user data 
   # NOTE: rclone does not support symlinks, which OCIS uses.

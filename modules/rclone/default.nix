@@ -60,7 +60,6 @@ let
           "rw"
           "allow_other"
           "_netdev"
-          "noauto"
           "x-systemd.automount"
           # "x-systemd.idle-timeout=60"
 
