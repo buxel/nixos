@@ -59,7 +59,7 @@ let
         options = [
           "defaults"
           "_netdev"
-          # "allow_other"
+          "allow_other"
           # "x-systemd.automount"
           # "env.PATH=/run/wrappers/bin" # for fusermount3
           # "uid=${toString values.uid}"
@@ -67,7 +67,6 @@ let
 
           # blobfuse args 
           "--config-file=${values.configPath}"
-          "allow-other"
           # "--container-name=${values.container}"
           # "--allow-other"
           # "--tmp-path=/tmp/"
