@@ -31,7 +31,9 @@ in {
 
       oh-my-zsh = {
         enable = true;
-        theme = "robbyrussell";
+        # theme = "robbyrussell";
+        # theme = "cypher";
+        theme = "af-magic";
       };
 
       initExtra = ''
@@ -41,6 +43,10 @@ in {
           extractposition=$(grep --binary --byte-offset --only-matching --text -P "\x00\x00\x00\x1C\x66\x74\x79\x70\x69\x73\x6f\x6d" $1 | sed 's/^\([0-9]*\).*/\1/')
           dd if="$1" skip=1 bs=$extractposition of="$(basename -s .jpg $1).mp4"
         }
+
+        # Unless run with sudo, run "systemctl --user" and "journalclt --user" by default
+        systemctl() { [ $EUID -eq 0 ] && command systemctl "$@" || command systemctl --user "$@"; }
+        journalctl() { [ $EUID -eq 0 ] && command journalctl "$@" || command journalctl --user "$@"; }
 
         ## zsh-fzf-tab
         #. ${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh
