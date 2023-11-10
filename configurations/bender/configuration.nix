@@ -23,11 +23,11 @@
   networking.nameservers = [ "1.1.1.1" "9.9.9.9" ];
 
     # Ocis
-  modules.ocis = { 
-    enable = false;
-    hostName = "cloud.pingbit.de";
-    dataDir = "/mnt/ocis";
-  };
+  # modules.ocis = { 
+  #   enable = false;
+  #   hostName = "cloud.pingbit.de";
+  #   dataDir = "/mnt/ocis";
+  # };
   # Ocis remote user data 
   # NOTE: rclone does not support symlinks, which OCIS uses.
   modules.blobfuse.package = pkgs.unstable.blobfuse;
@@ -41,16 +41,16 @@
 
   # Immich remote data
   # TODO: maybe inject this into the immich systemd unit: https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#RequiresMountsFor=
-  modules.rclone.mounts."/mnt/photos" = {
-    configPath = config.age.secrets.rclone-conf.path;
-    remote = "azure-data:photos";
-    uid = config.ids.uids.immich;
-    gid = config.ids.gids.immich;
-    mountOpts = [ "log-level=INFO" ];
-  };
+  # modules.rclone.mounts."/mnt/photos" = {
+  #   configPath = config.age.secrets.rclone-conf.path;
+  #   remote = "azure-data:photos";
+  #   uid = config.ids.uids.immich;
+  #   gid = config.ids.gids.immich;
+  #   mountOpts = [ "log-level=INFO" ];
+  # };
   # Immich 
   modules.immich = {
-    enable = true;
+    enable = false;
     hostName = "photos.pingbit.de";
     photosDir = "/mnt/photos";
   };
