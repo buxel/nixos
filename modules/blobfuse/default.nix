@@ -63,17 +63,14 @@ let
         device = "${cfg.package}/bin/azure-storage-fuse";
         fsType = "fuse3";
         options = [
-          "defaults"
+          # "defaults"
           "_netdev"
-          "user"
           "allow_other"
           "uid=${toString values.uid}"
           "gid=${toString values.gid}"
 
           # SystemD
           "x-systemd.automount"
-          "x-systemd.device-bound=false"
-          "x-systemd.mount-timeout=60s"
           
           # "env.PATH=/run/wrappers/bin" # for fusermount3
 
@@ -81,7 +78,6 @@ let
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
           "--tmp-path=${values.tmpDir}"
-          "--wait-for-mount=30s"
           "--allow-other"
           
         ] ++ values.mountOpts;
