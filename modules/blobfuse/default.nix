@@ -68,7 +68,6 @@ let
 
           #"env.PATH=/run/wrappers/bin" # for fusermount3
           # blobfuse args 
-          "--foreground=true"
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
           # "--allow-other"
