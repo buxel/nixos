@@ -73,7 +73,7 @@ let
           # blobfuse  
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
-          "--wait-for-mount=5s"
+          "--foreground"
           # "--allow-other"
           # "--tmp-path=/tmp/"
           
