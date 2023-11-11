@@ -68,7 +68,7 @@ let
           "x-systemd.automount"
           "x-systemd.mount-timeout=10s"
           
-          "env.PATH=/run/wrappers/bin" # for fusermount3
+          # "env.PATH=/run/wrappers/bin" # for fusermount3
 
           # blobfuse  
           "--config-file=${values.configPath}"
