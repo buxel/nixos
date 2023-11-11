@@ -55,16 +55,18 @@ let
     let
       fsValue = {
         device = "${cfg.package}/bin/azure-storage-fuse";
-        fsType = "fuse3";
+        fsType = "fuse";
         options = [
           "defaults"
           "_netdev"
+          "noauto"
           "allow_other"
           "x-systemd.automount"
           "x-systemd.mount-timeout=10s"
           "uid=${toString values.uid}"
           "gid=${toString values.gid}"
 
+          "env.PATH=/run/wrappers/bin" # for fusermount3
           # blobfuse args 
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
