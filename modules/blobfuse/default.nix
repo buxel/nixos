@@ -72,7 +72,7 @@ let
           # SystemD
           "x-systemd.automount"
           "x-systemd.device-bound=false"
-          #"x-systemd.mount-timeout=10s"
+          "x-systemd.mount-timeout=60s"
           
           # "env.PATH=/run/wrappers/bin" # for fusermount3
 
@@ -80,7 +80,7 @@ let
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
           "--tmp-path=${values.tmpDir}"
-          "--wait-for-mount=5s"
+          "--wait-for-mount=30s"
           "--allow-other"
           
         ] ++ values.mountOpts;
