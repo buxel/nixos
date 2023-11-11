@@ -26,6 +26,12 @@ let
         description = "Name of the cointainer to mount.";
       };
 
+      tmpDir = mkOption { 
+        type = types.path; 
+        default = /tmp/blobfuse;
+        description = "directory for cache and temporary files";
+      };
+
       mountOpts = mkOption {
         type = types.listOf (types.str);
         default = [];
@@ -59,10 +65,9 @@ let
         options = [
           "defaults"
           "_netdev"
-          # "noauto"
           "allow_other"
-          #"uid=${toString values.uid}"
-          #"gid=${toString values.gid}"
+          "uid=${toString values.uid}"
+          "gid=${toString values.gid}"
 
           # SystemD
           #"x-systemd.automount"
@@ -73,9 +78,8 @@ let
           # blobfuse  
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
-          #"--foreground"
-          # "--allow-other"
-          # "--tmp-path=/tmp/"
+          "--tmp-path=${tmpDir}"
+          "--allow-other"
           
         ] ++ values.mountOpts;
       };
