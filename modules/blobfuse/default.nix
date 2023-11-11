@@ -71,6 +71,7 @@ let
 
           # SystemD
           "x-systemd.automount"
+          "x-systemd.requires=systemd-networkd-wait-online.service"
           #"x-systemd.mount-timeout=10s"
           
           # "env.PATH=/run/wrappers/bin" # for fusermount3
