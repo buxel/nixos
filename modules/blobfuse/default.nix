@@ -112,9 +112,8 @@ in {
   ###### implementation
 
   config = mkIf (cfg.mounts != {}) {
-    environment.systemPackages = [ pkgs.unstable.rclone ];
-    system.fsPackages = [ pkgs.unstable.rclone ];
-    systemd.packages = [ pkgs.unstable.rclone ];
+    system.fsPackages = [ cfg.package ];
+    systemd.packages = [ cfg.package ];
 
     fileSystems = mapAttrs' generateMount cfg.mounts;
   };
