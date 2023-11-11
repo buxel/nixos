@@ -31,6 +31,7 @@
   # Ocis remote user data 
   # NOTE: rclone does not support symlinks, which OCIS uses.
   #modules.blobfuse.mounts."/mnt/ocis" = {
+  age.secrets."blobfuse-yaml".path = config.age.secretsDir + "/blobfuse.yaml"; # blobfuse inists on a ".yaml extension. This messes up secrets handling with "nixos secrets", as dots indicate a hierarchy level in nix.
   modules.blobfuse.package = pkgs.unstable.blobfuse;
   modules.blobfuse.mounts."${config.modules.ocis.dataDir}" = {
     configPath = config.age.secrets."blobfuse-yaml".path;
