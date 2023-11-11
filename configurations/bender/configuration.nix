@@ -23,21 +23,21 @@
   networking.nameservers = [ "1.1.1.1" "9.9.9.9" ];
 
     # Ocis
-  # modules.ocis = { 
-  #   enable = false;
-  #   hostName = "cloud.pingbit.de";
-  #   dataDir = "/mnt/ocis";
-  # };
+  modules.ocis = { 
+    enable = true;
+    hostName = "cloud.pingbit.de";
+    dataDir = "/mnt/ocis";
+  };
   # Ocis remote user data 
   # NOTE: rclone does not support symlinks, which OCIS uses.
+  #modules.blobfuse.mounts."/mnt/ocis" = {
   modules.blobfuse.package = pkgs.unstable.blobfuse;
-  modules.blobfuse.mounts."/mnt/ocis" = {
-  #modules.blobfuse.mounts."${config.modules.ocis.dataDir}" = {
+  modules.blobfuse.mounts."${config.modules.ocis.dataDir}" = {
     configPath = config.age.secrets."blobfuse.yaml".path;
     container = "ocis";
     mountOpts = [ "--log-level=LOG_DEBUG" ];
-    # uid = config.ids.uids.ocis;
-    # gid = config.ids.gids.ocis;
+    uid = config.ids.uids.ocis;
+    gid = config.ids.gids.ocis;
   }; 
 
   # Immich remote data
