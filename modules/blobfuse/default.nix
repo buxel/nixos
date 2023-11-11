@@ -59,14 +59,14 @@ let
         options = [
           "defaults"
           "_netdev"
-          "noauto"
+          # "noauto"
           "allow_other"
           #"uid=${toString values.uid}"
           #"gid=${toString values.gid}"
 
           # SystemD
-          "x-systemd.automount"
-          "x-systemd.mount-timeout=10s"
+          #"x-systemd.automount"
+          #"x-systemd.mount-timeout=10s"
           
           # "env.PATH=/run/wrappers/bin" # for fusermount3
 
