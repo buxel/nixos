@@ -55,14 +55,14 @@ let
     let
       fsValue = {
         device = "${cfg.package}/bin/azure-storage-fuse";
-        fsType = "fuse";
+        fsType = "fuse3";
         options = [
           "defaults"
           "_netdev"
           #"noauto"
           "allow_other"
           "x-systemd.automount"
-          "x-systemd.mount-timeout=10s"
+          "x-systemd.mount-timeout=5s"
           #"uid=${toString values.uid}"
           #"gid=${toString values.gid}"
 
