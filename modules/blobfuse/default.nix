@@ -80,6 +80,7 @@ let
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
           "--tmp-path=${values.tmpDir}"
+          "--wait-for-mount=5s"
           "--allow-other"
           
         ] ++ values.mountOpts;
