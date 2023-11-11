@@ -104,7 +104,6 @@ in {
         example = {
           "/mnt/blobfuse" = {
             configPath = "/etc/blobfuse.yaml";
-
           };
         };
         type = with types; attrsOf (submodule mountOpts);
