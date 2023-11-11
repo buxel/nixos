@@ -59,14 +59,14 @@ let
         options = [
           "defaults"
           "_netdev"
-          "noauto"
+          #"noauto"
           "allow_other"
           "x-systemd.automount"
           "x-systemd.mount-timeout=10s"
-          "uid=${toString values.uid}"
-          "gid=${toString values.gid}"
+          #"uid=${toString values.uid}"
+          #"gid=${toString values.gid}"
 
-          "env.PATH=/run/wrappers/bin" # for fusermount3
+          #"env.PATH=/run/wrappers/bin" # for fusermount3
           # blobfuse args 
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
