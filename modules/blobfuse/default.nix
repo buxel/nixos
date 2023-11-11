@@ -73,7 +73,7 @@ let
           # blobfuse  
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
-          "--foreground"
+          #"--foreground"
           # "--allow-other"
           # "--tmp-path=/tmp/"
           
