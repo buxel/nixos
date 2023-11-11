@@ -28,7 +28,7 @@ let
 
       tmpDir = mkOption { 
         type = types.path; 
-        default = /tmp/blobfuse;
+        default = /var/lib/blobfuse;
         description = "directory for cache and temporary files";
       };
 
