@@ -78,7 +78,7 @@ let
           # blobfuse  
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
-          "--tmp-path=${tmpDir}"
+          "--tmp-path=${values.tmpDir}"
           "--allow-other"
           
         ] ++ values.mountOpts;
