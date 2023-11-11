@@ -59,19 +59,24 @@ let
         options = [
           "defaults"
           "_netdev"
-          #"noauto"
+          "noauto"
           "allow_other"
-          "x-systemd.automount"
-          "x-systemd.mount-timeout=5s"
           #"uid=${toString values.uid}"
           #"gid=${toString values.gid}"
 
-          #"env.PATH=/run/wrappers/bin" # for fusermount3
-          # blobfuse args 
+          # SystemD
+          "x-systemd.automount"
+          "x-systemd.mount-timeout=10s"
+          
+          "env.PATH=/run/wrappers/bin" # for fusermount3
+
+          # blobfuse  
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
+          "--wait-for-mount=5"
           # "--allow-other"
           # "--tmp-path=/tmp/"
+          
         ] ++ values.mountOpts;
       };
     in
