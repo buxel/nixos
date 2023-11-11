@@ -65,6 +65,7 @@ let
         options = [
           "defaults"
           "_netdev"
+          "user"
           "allow_other"
           "uid=${toString values.uid}"
           "gid=${toString values.gid}"
