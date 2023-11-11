@@ -37,7 +37,7 @@
   #modules.blobfuse.mounts."${config.modules.ocis.dataDir}" = {
     configPath = config.age.secrets."blobfuse-yaml".path;
     container = "ocis";
-    mountOpts = [ "--log-level=LOG_TRACE" ];
+    mountOpts = [ "--log-level=LOG_DEBUG" ];
     #uid = config.ids.uids.ocis;
     #gid = config.ids.gids.ocis;
   }; 

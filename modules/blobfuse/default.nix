@@ -70,7 +70,7 @@ let
           "gid=${toString values.gid}"
 
           # SystemD
-          "x-systemd.automount"
+          # "x-systemd.automount"
           
           # "env.PATH=/run/wrappers/bin" # for fusermount3
 
