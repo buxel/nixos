@@ -63,7 +63,7 @@ let
         device = "${cfg.package}/bin/azure-storage-fuse";
         fsType = "fuse3";
         options = [
-          # "defaults"
+          "defaults"
           "_netdev"
           "allow_other"
           "uid=${toString values.uid}"
