@@ -68,6 +68,8 @@ let
           "allow_other"
           "uid=${toString values.uid}"
           "gid=${toString values.gid}"
+          "user_id=${toString values.uid}"
+          "group_id=${toString values.gid}"
 
           # SystemD
           # "x-systemd.automount"
