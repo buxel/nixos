@@ -24,9 +24,9 @@
 
     # Ocis
   modules.ocis = { 
-    enable = false;
+    enable = true;
     hostName = "cloud.pingbit.de";
-    dataDir = "/mnt/ocis";
+    # dataDir = "/mnt/ocis";
   };
 
   # Ocis remote user data 
@@ -34,13 +34,14 @@
   age.secrets.blobfuse-yaml.name = "blobfuse.yaml"; # blobfuse inists on a ".yaml extension. This messes up secrets handling with "nixos secrets", as dots indicate a hierarchy level in nix.
   modules.blobfuse.package = pkgs.unstable.blobfuse;
   
-  modules.blobfuse.mounts."/mnt/ocis" = {
+  modules.blobfuse.mounts."/var/lib/ocis/storage" = {
+  #modules.blobfuse.mounts."/mnt/ocis" = {
   #modules.blobfuse.mounts."${config.modules.ocis.dataDir}" = {
     configPath = config.age.secrets."blobfuse-yaml".path;
     container = "ocis";
     mountOpts = [ "--log-level=LOG_DEBUG" ];
-    # uid = config.ids.uids.ocis;
-    # gid = config.ids.gids.ocis;
+    uid = config.ids.uids.ocis;
+    gid = config.ids.gids.ocis;
   }; 
 
   # Immich remote data
