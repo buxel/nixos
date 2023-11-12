@@ -31,9 +31,12 @@
 
   # Ocis remote user data 
   # NOTE: rclone does not support symlinks, which OCIS uses.
-  age.secrets.blobfuse-yaml.name = "blobfuse.yaml"; # blobfuse inists on a ".yaml extension. This messes up secrets handling with "nixos secrets", as dots indicate a hierarchy level in nix.
   modules.blobfuse.package = pkgs.unstable.blobfuse;
   
+  # Workarounds
+  age.secrets.blobfuse-yaml.name = "blobfuse.yaml"; # blobfuse inists on a ".yaml extension. This messes up secrets handling with "nixos secrets", as dots indicate a hierarchy level in nix.
+  systemd.services.docker-ocis.bindsTo = [ "var-lib-ocis-storage.mount" ]; # ocis depends on blobfuse to be ready. 
+
   modules.blobfuse.mounts."/var/lib/ocis/storage" = {
   #modules.blobfuse.mounts."/mnt/ocis" = {
   #modules.blobfuse.mounts."${config.modules.ocis.dataDir}" = {
