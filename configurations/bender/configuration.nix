@@ -24,10 +24,11 @@
 
     # Ocis
   modules.ocis = { 
-    enable = true;
+    enable = false;
     hostName = "cloud.pingbit.de";
     dataDir = "/mnt/ocis";
   };
+
   # Ocis remote user data 
   # NOTE: rclone does not support symlinks, which OCIS uses.
   age.secrets.blobfuse-yaml.name = "blobfuse.yaml"; # blobfuse inists on a ".yaml extension. This messes up secrets handling with "nixos secrets", as dots indicate a hierarchy level in nix.
@@ -38,8 +39,8 @@
     configPath = config.age.secrets."blobfuse-yaml".path;
     container = "ocis";
     mountOpts = [ "--log-level=LOG_DEBUG" ];
-    uid = config.ids.uids.ocis;
-    gid = config.ids.gids.ocis;
+    # uid = config.ids.uids.ocis;
+    # gid = config.ids.gids.ocis;
   }; 
 
   # Immich remote data
