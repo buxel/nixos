@@ -35,20 +35,22 @@
   
   # Workarounds
   age.secrets.blobfuse-yaml.name = "blobfuse.yaml"; # blobfuse inists on a ".yaml extension. This messes up secrets handling with "nixos secrets", as dots indicate a hierarchy level in nix.
-  systemd.services.docker-ocis.bindsTo = [ "var-lib-ocis-storage.mount" ]; # ocis depends on blobfuse to be ready. 
+  # TODO: maybe also inject RequiresMountsFor into systemd unit: https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#RequiresMountsFor=
+  systemd.services.docker-ocis.bindsTo = [ "var-lib-ocis-storage.mount" ]; # create a dependency that also kills the service, if the mount is gone
+  # TODO: make mountpoint immutable so it is not accidently written
 
-  modules.blobfuse.mounts."/var/lib/ocis/storage" = {
+  # TODO: wrap this in a module/overlay/whatever is a smooth way to integrate it with existing modules
+  modules.blobfuse.mounts."${config.modules.ocis.dataDir}/storage" = {
   #modules.blobfuse.mounts."/mnt/ocis" = {
   #modules.blobfuse.mounts."${config.modules.ocis.dataDir}" = {
     configPath = config.age.secrets."blobfuse-yaml".path;
     container = "ocis";
-    mountOpts = [ "--log-level=LOG_DEBUG" ];
+    # mountOpts = [ "--log-level=LOG_DEBUG" ];
     uid = config.ids.uids.ocis;
     gid = config.ids.gids.ocis;
   }; 
 
   # Immich remote data
-  # TODO: maybe inject this into the immich systemd unit: https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#RequiresMountsFor=
   # modules.rclone.mounts."/mnt/photos" = {
   #   configPath = config.age.secrets.rclone-conf.path;
   #   remote = "azure-data:photos";
@@ -89,3 +91,6 @@
   #   wantedBy = [ "multi-user.target" ];
   # }];
 }
+
+# Ideas / todos:
+# use https://github.com/berberman/nvfetcher to update docker images
