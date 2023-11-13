@@ -60,7 +60,7 @@
   # };
 
   systemd.services.immich.unitConfig = {
-    RequiresMountsFor = ${config.modules.immich.photosDir};
+    RequiresMountsFor = config.modules.immich.photosDir;
   };
   modules.blobfuse.mounts."${config.modules.immich.photosDir}" = {
   #modules.blobfuse.mounts."/mnt/ocis" = {
