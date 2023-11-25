@@ -5,8 +5,6 @@
     # ./storage.nix
   ];
   
-  # Allow cross-compilation on x86 systems using emulation (slow!)
-  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;

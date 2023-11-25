@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v19
+    - uses: cachix/install-nix-action@v23
       with:
         name: buxel
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -17,9 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v19
+    - run: sudo apt-get install -y qemu-user-static
+    - uses: cachix/install-nix-action@v23
       with:
         name: buxel
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
+        extra_nix_config: |
+            system = aarch64-linux
     - run: nix build .#nixosConfigurations.bender.config.system.build.toplevel
