@@ -52,7 +52,7 @@
       # Additional binary caches and keys
       caches = { ... }: let 
         urls = [
-          "https://suderman.cachix.org"
+          "https://buxel.cachix.org"
           "https://nix-community.cachix.org"
           "https://hyprland.cachix.org"
           "https://fufexan.cachix.org"
@@ -61,7 +61,7 @@
           "https://cache.nixos.org"
         ];
         keys = [
-          "suderman.cachix.org-1:8lYeb2gOOVDPbUn1THnL5J3/L4tFWU30/uVPk7sCGmI="
+          "buxel.cachix.org-1:s250rRR2j5TyauO4dTmHqh9ZHhiAO7xLTLgCPKlKf+E="
           "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
           "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
           "fufexan.cachix.org-1:LwCDjCJNJQf5XD2BV+yamQIMZfcKWR9ISIFy5curUsY="
