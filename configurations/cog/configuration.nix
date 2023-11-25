@@ -7,10 +7,6 @@
     ./storage.nix
   ];
 
-  # Base configuration
-  modules.base.enable = true;
-  modules.secrets.enable = true;
-
   # Use freshest kernel
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
@@ -32,7 +28,11 @@
   modules.earlyoom.enable = true;
 
   # Keyboard control
-  modules.keyd.enable = true;
+  modules.keyd = {
+    enable = true;
+    quirks = true;
+    settings = ./keyd.conf;
+  };
   modules.ydotool.enable = true;
 
   # Support iOS devices

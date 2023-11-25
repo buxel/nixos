@@ -1,18 +1,14 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, inputs, ... }: {
 
   imports = [ 
+    inputs.hardware.nixosModules.lenovo-thinkpad-t480s
     ./hardware-configuration.nix
     ./storage.nix
   ];
 
-  # Use freshest kernel
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
-  networking.networkmanager.enable = true;
 
   # Memory management
   modules.earlyoom.enable = true;
