@@ -22,4 +22,4 @@ jobs:
         name: buxel
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
-    - run: nix build .#nixosConfigurations.bender.config.system.build.toplevel
+    - run: nix build .#nixosConfigurations.bender.config.system.build.toplevel --argstr system aarch64-linux
