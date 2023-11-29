@@ -5,14 +5,14 @@
 
   alphanumeric-secret = ./alphanumeric-secret.age;
   basic-auth = ./basic-auth.age;
-  btrbk-key = ./btrbk-key.age;
+  blobfuse-yaml = ./blobfuse-yaml.age;
   cloudflare-env = ./cloudflare-env.age;
   immich-env = ./immich-env.age;
   ocis-env = ./ocis-env.age;
-  password = ./password.age;
   password-hash = ./password-hash.age;
-  smtp-env = ./smtp-env.age;
+  password = ./password.age;
+  rclone-conf = ./rclone-conf.age;
+  restic-azure-env = ./restic-azure-env.age;
   traefik-env = ./traefik-env.age;
-  withings-env = ./withings-env.age;
 
 }
