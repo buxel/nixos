@@ -19,7 +19,10 @@
   networking.extraHosts = "";
   networking.nameservers = [ "1.1.1.1" "9.9.9.9" ];
 
-    # Ocis
+  # Allow vscode-remote to work on this system
+  programs.nix-ld.enable = true;
+
+  # Ocis
   modules.ocis = { 
     enable = true;
     hostName = "cloud.pingbit.de";
