@@ -1,9 +1,5 @@
 {
-  host = "bender"; 
-  domain = "pingbit.de"; 
-  user = "me"; 
+  host = "bender";
   system = "aarch64-linux";
-  config = {
-    modules.secrets.enable = true;
-  };
+  config.modules.secrets.enable = true;
 }

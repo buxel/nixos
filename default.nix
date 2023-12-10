@@ -146,7 +146,7 @@ in {
 
   # Default values, overridden in configuration/*/default.nix
   host = "nixos";  
-  domain = "suderman.org"; 
+  domain = "pingbit.de"; 
 
   users = []; # without users, only root exists
   admins = []; # allow sudo/ssh powers users with keys
