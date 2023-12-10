@@ -1,12 +1,11 @@
 # modules.netdata.enable = true;
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, this, ... }:
 
 let
-
   cfg = config.modules.netdata;
   port = "19999";
-  inherit (config.users) user;
   inherit (lib) mkIf mkOption types;
+  inherit (this.lib) extraGroups;
 
 in {
 
@@ -55,8 +54,8 @@ in {
 
     # TODO: claim script when using cloud. Check Plex how this could be done
 
-    # Add user to the netdata group
-    users.users."${user}".extraGroups = [ "netdata" ]; 
+    # Add admins to the netdata group
+    users.users = extraGroups this.admins [ "netdata" ];
 
   };
 
