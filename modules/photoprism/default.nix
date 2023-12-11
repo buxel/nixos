@@ -1,20 +1,16 @@
 # modules.photoprism.enable = true;
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, this, ... }:
 
 let
 
   cfg = config.modules.photoprism;
   secrets = config.age.secrets;
 
-  inherit (config.users) user;
   inherit (lib) mkIf mkOption mkBefore mkForce types;
   inherit (lib.strings) toInt;
   inherit (builtins) toString;
 
 in {
-
-  # Taken from unstable, expected to be added in 23.05
-  # imports = [ ./photoprism.nix ];
 
   options.modules.photoprism = {
     enable = lib.options.mkEnableOption "photoprism"; 
@@ -58,7 +54,7 @@ in {
       package = pkgs.unstable.photoprism;
       passwordFile = secrets.password.path;
       port = cfg.port;
-      settings.PHOTOPRISM_ADMIN_USER = user;
+      settings.PHOTOPRISM_ADMIN_USER = builtins.head this.admins;
       originalsPath = cfg.photosDir;
       storagePath = cfg.dataDir;
     };

@@ -3,8 +3,12 @@
 let
 
   inherit (lib) optionalAttrs recursiveUpdate;
+  inherit (this.lib) ls;
 
 in {
+
+  # Import all *.nix files in this directory
+  imports = ls ./.;
 
   # ---------------------------------------------------------------------------
   # Common Configuration for all Home Manager users
@@ -12,10 +16,6 @@ in {
   # ---------------------------------------------------------------------------
   # Inherit any config settings in configuration's default.nix
   config = optionalAttrs (this ? config) (recursiveUpdate this.config {
-
-    # Set username and home directory
-    home.username = this.user;
-    home.homeDirectory = this.lib.homeDir;
 
     # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
     home.stateVersion = "22.05";
