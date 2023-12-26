@@ -11,7 +11,7 @@ in {
 
   options.modules.restic = {
     enable = lib.options.mkEnableOption "restic"; 
-    paths =  mkOption { type = types.listOf (types.str); default = [];};
+    extraPaths =  mkOption { type = types.listOf (types.str); default = [];};
     exclude =  mkOption { type = types.listOf (types.str); default = [];};
     # execStartPre = mkOption { type = types.str; }; # TODO: hook into this on order to prepare i.e. postgres backups
     # TODO: set services.restic.backups.<name>.repository destination repo from machine config
@@ -33,7 +33,7 @@ in {
       ];
     in {      
       azureBlob =  {
-        paths = cfg.paths;
+        paths = paths ++ cfg.extraPaths;
         exclude = exclude ++ cfg.exclude;
         environmentFile = secrets.restic-azure-env.path;
         passwordFile = secrets.alphanumeric-secret.path;
