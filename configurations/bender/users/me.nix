@@ -1,4 +1,4 @@
-{ config, options, lib, pkgs, this, ... }: let 
+{ config, lib, pkgs, ... }: {
 
   home.packages = with pkgs; [ 
     neofetch

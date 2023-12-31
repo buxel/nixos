@@ -11,7 +11,8 @@
 
 let
   versionHashes = {
-    "14" = "sha256-8YRC1Cd9i0BGUJwLmUoPVshdD4nN66VV3p48ziy3ZbA=";
+    "x86_64"  = "sha256-8YRC1Cd9i0BGUJwLmUoPVshdD4nN66VV3p48ziy3ZbA=";
+    "aarch64" = "sha256-VeCEQ42XcTpbbeGsMdrVKYlu9eDbPCJe6uKYd/LAm10=";
   };
   major = lib.versions.major postgresql.version;
   system' = lib.removeSuffix "-linux" system;
@@ -27,7 +28,7 @@ in stdenv.mkDerivation rec {
     # https://github.com/tensorchord/pgvecto.rs/releases/download/v0.1.11/vectors-pg14-v0.1.11-aarch64-unknown-linux-gnu.deb
     url =
       "https://github.com/tensorchord/pgvecto.rs/releases/download/v${version}/vectors-pg${major}-v${version}-${system'}-unknown-linux-gnu.deb";
-    hash = versionHashes."${major}";
+    hash = versionHashes."${system'}";
   };
 
   dontUnpack = true;
