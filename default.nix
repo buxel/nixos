@@ -1,6 +1,6 @@
 # Attribute set of NixOS configurations found in each directory
 { inputs, caches ? [], ... }: let
-  inherit (lib) ls mkAttrs mkList mkUsers;
+  inherit (lib) ls mkAttrs mkHomeAttrs mkList mkUsers;
 
   # Personal lib
   lib = {
@@ -49,9 +49,9 @@
       else []
     );
 
-    # Create list from path
+    # Create list from path or list
     mkList = x: ( let 
-      inherit (builtins) isPath pathExists;
+      inherit (builtins) isPath isList pathExists;
       inherit (inputs.nixpkgs.lib) removeSuffix;
 
       # Create list from files and subdirectories of path
@@ -59,37 +59,54 @@
         ( filename: removeSuffix ".nix" filename )
         ( ls { inherit path; asPath = false; } );
 
+      # Create list from list of values
+      fromList = list: map 
+        ( filename: removeSuffix ".nix" filename )
+        ( list );
     in
       if (isPath x) then (fromPath x)
+      else if (isList x) then (fromList x)
       else []
     );
 
-    # Create attrs from list or path
+    # Create attrs from list, attr names, or path
     mkAttrs = x: fn: ( let 
-      inherit (builtins) listToAttrs isPath isList pathExists;
+      inherit (builtins) attrNames listToAttrs isAttrs isPath isList pathExists;
       inherit (inputs.nixpkgs.lib) removeSuffix;
 
       # Create attribute set from files and subdirectories of path
-      # fromPath = path: if ! pathExists path then {} else listToAttrs ( map 
       fromPath = path: listToAttrs ( map 
-        (name: { name = (removeSuffix ".nix" name); value = (fn name); }) 
-        (ls { inherit path; asPath = false; } )
+        ( name: { name = (removeSuffix ".nix" name); value = (fn name); }) 
+        ( ls { inherit path; asPath = false; } )
       );
 
-      # Create list from files and subdirectories of path
+      # Create attribute set list of values
       fromList = list: listToAttrs ( map 
-        (name: { inherit name; value = (fn name); }) 
-        (list) 
+        ( name: { name = (removeSuffix ".nix" name); value = (fn name); }) 
+        ( list ) 
       );
+
+      # Do the same as above using the attrNames
+      fromAttrs = attrs: fromList (attrNames attrs);
 
     in
       if (isPath x) then (fromPath x) 
       else if (isList x) then (fromList x)
+      else if (isAttrs x) then (fromAttrs x)
       else {}
     );
 
+    # Like mkAttrs but only includes user nix files or directories with home.nix
+    mkHomeAttrs = path: fn: mkAttrs ( ls { 
+      inherit path; 
+      asPath = false; dirsWith = [ "home.nix" ]; 
+    }) fn;
+
     # List of users for a particular nixos configuration
-    mkUsers = host: mkList ./configurations/${host}/users;
+    mkUsers = host: mkList( ls { 
+      path = ./configurations/${host}/users; 
+      asPath = false; dirsWith = [ "home.nix" ]; 
+    });
 
     # List of users with a public key in the secrets directory
     mkAdmins = let 
@@ -125,31 +142,51 @@
       };
 
       # Include shared modules followed by dir-specific modules 
-      in dir: 
+      in host: 
 
-      # Home Manager modules are organized under each user's name
-      mkAttrs ./configurations/${dir}/users ( 
-        user: 
-          ls { path = ./modules; dirsWith = [ "home.nix" ]; } ++ # home-manager modules
-          ls ./configurations/all/users/all/home.nix ++ # shared home-manager configuration for all users
-          ls ./configurations/all/users/${user} ++ # shared home-manager configuration for one user
-          ls ./configurations/all/users/${user}/home.nix ++
-          ls ./configurations/${dir}/users/${user} ++ # specific home-manager configuration for one user
-          ls ./configurations/${dir}/users/${user}/home.nix ++
-          [ ./secrets ] ++ nix-cache ++ nix-index.home # secrets, keys, cache and index
+        # Home Manager modules are organized under each user's name
+        mkHomeAttrs ./configurations/${host}/users (
+          user: 
+            ls { path = ./modules; dirsWith = [ "home.nix" ]; } ++ # home-manager modules
+            ls ./configurations/all/users/all/home.nix ++ # shared home-manager configuration for all users
+            ls ./configurations/all/users/${user} ++ # shared home-manager configuration for one user
+            ls ./configurations/all/users/${user}/home.nix ++
+            ls ./configurations/${host}/users/${user} ++ # specific home-manager configuration for one user
+            ls ./configurations/${host}/users/${user}/home.nix ++
+            [ ./secrets ] ++ nix-cache ++ nix-index.home # secrets, keys, cache and index
 
-      # NixOS modules are organization under "root"
-      ) // {
-        root = 
-          ls { path = ./modules; dirsWith = [ "default.nix" ]; } ++ # nixos modules
-          ls ./configurations/all/configuration.nix ++ # shared nixos configuration for all systems
-          ls ./configurations/${dir}/configuration.nix ++ # specific nixos configuration for one system
-          [ ./secrets ] ++ nix-cache ++ nix-index.nixos # secrets, keys, cache and index
-        ;
-      };
+        # NixOS modules are organization under "root"
+        ) // {
+          root = 
+            ls { path = ./modules; dirsWith = [ "default.nix" ]; } ++ # nixos modules
+            ls ./configurations/all/configuration.nix ++ # shared nixos configuration for all systems
+            ls ./configurations/${host}/configuration.nix ++ # specific nixos configuration for one system
+            [ ./secrets ] ++ nix-cache ++ nix-index.nixos # secrets, keys, cache and index
+          ;
+        };
+
+    # Attribute set describing my domains, hostnames and IP addresses  
+    mkNetwork = let
+      inherit (builtins) attrNames filter foldl' isAttrs isString concatStringsSep;
+      inherit (inputs.nixpkgs.lib) hasPrefix; 
+
+      # https://github.com/nix-community/ethereum.nix/blob/main/lib.nix#L20
+      flatten = tree: let
+        op = sum: path: val:
+          if isString val then (sum // { "${concatStringsSep "." path}" = val; })
+          else if isAttrs val then (recurse sum path val)
+          else sum;
+        recurse = sum: path: val:
+          foldl' (sum: key: op sum ([key] ++ path) val.${key}) sum (attrNames val);
+      in recurse {} [] tree;
+
+    in host: rec {
+      dns = import ./network.nix;
+      mapping = flatten dns;
+      hosts = filter (name: hasPrefix host name) (attrNames mapping);
+    };
 
   };
-
 
 in {
 
@@ -160,9 +197,14 @@ in {
   host = "nixos";  
   domain = "pingbit.de"; 
 
+  # Self-signed CA certificate (with ca-key in secrets)
+  # openssl req -new -x509 -nodes -extensions v3_ca -days 25568 -subj "/CN=Suderman CA" -key ca.key -out ca.crt  
+  ca = ./ca.crt;
+
   users = []; # without users, only root exists
   admins = []; # allow sudo/ssh powers users with keys
   modules = {}; # includes for nixos and home-manager
+  network = {}; # hostnames and IP addresses 
 
   system = "x86_64-linux";
   config = {};

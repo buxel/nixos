@@ -1,27 +1,26 @@
 # modules.gnome.enable = true;
-{ config, lib, pkgs, this, ... }:
+{ config, lib, pkgs, osConfig, this, ... }:
 
 let 
 
   cfg = config.modules.gnome;
-  inherit (lib) mkIf mkOption types unique;
+  inherit (lib) mkIf mkOption types;
   inherit (lib.options) mkEnableOption;
-  inherit (this.lib) apps;
 
 in {
 
   options.modules.gnome = with types; {
     enable = mkEnableOption "gnome"; 
-    apps = mkOption { type = attrs; default = {}; };
+    meta = mkOption { type = anything; default = {}; };
 
     dock = mkOption { 
-      type = listOf attrs; 
-      default = with apps; [
+      type = listOf (either package str);
+      default = with pkgs; [
         kitty
         firefox
-        nautilus
-        telegram
-        text-editor
+        gnome.nautilus
+        telegram-desktop
+        gnome-text-editor
       ]; 
     };
 
@@ -39,8 +38,8 @@ in {
 
     # `gnome-extensions list` for a list
     extensions = mkOption { 
-      type = listOf attrs; 
-      default = with apps; [
+      type = listOf package; 
+      default = with pkgs.gnomeExtensions; [
         auto-move-windows
         bluetooth-quick-connect
         blur-my-shell
@@ -63,29 +62,51 @@ in {
 
   config = mkIf cfg.enable { 
 
-    # Helpful for debugging
-    modules.gnome.apps = {
-      packages = unique( cfg.packages ++ (apps.packages cfg.extensions) );
-      enabled-extensions = apps.ids cfg.extensions; 
-      favorite-apps = apps.ids cfg.dock;
-      inherit lib this;
-    };
+    # # Helpful for debugging
+    # modules.gnome.meta = let
+    #   allPkgs = unique( cfg.packages ++ cfg.dock ++ cfg.extensions );
+    # in rec {
+    #   flatpaks = lib.filter (pkg: lib.isString pkg) allPkgs;
+    #   missingFlatpaks = lib.subtractLists osConfig.modules.flatpak.allPackages flatpaks;
+    #   enabled-extensions = appIds cfg.extensions; 
+    #   favorite-apps = appIds cfg.dock;
+    #   system-apps = appIds osConfig.services.flatpak.packages;
+    #   user-apps = appIds config.services.flatpak.packages;
+    #   inherit lib this;
+    # };
 
-    # Install dconf & other apps + gnome extensions
-    home.packages = unique( cfg.packages ++ (apps.packages cfg.extensions) );
+    # Install all missing packages and extentions
+    home.packages = let 
+      inherit (lib) unique filter isString subtractLists;
+      allPkgs = unique( cfg.packages ++ cfg.dock ++ cfg.extensions );
+      userPkgs = filter (pkg: ! isString pkg) allPkgs;
+      systemPkgs = osConfig.environment.systemPackages;
+    in subtractLists systemPkgs userPkgs;
+
+    # Install all missing flatpak packages
+    modules.flatpak.packages = let
+      inherit (lib) unique filter isString subtractLists;
+      allPkgs = unique( cfg.packages ++ cfg.dock ++ cfg.extensions );
+      userPkgs = filter (pkg: isString pkg) allPkgs;
+      systemPkgs = osConfig.modules.flatpak.allPackages;
+    in subtractLists systemPkgs userPkgs;
+
 
     # Configure dconf
-    dconf.settings = {
+    dconf.settings = let
+      inherit (builtins) head tail toString;
+      inherit (this.lib) appIds;
+    in {
 
       "org/gnome/shell" = {
         disable-user-extensions = false;
-        enabled-extensions = apps.ids cfg.extensions; 
-        favorite-apps = apps.ids cfg.dock;
+        enabled-extensions = appIds cfg.extensions; 
+        favorite-apps = appIds cfg.dock;
       };
 
       "org/gnome/desktop/background" = {
-        picture-uri = "file://" + builtins.toString(builtins.head cfg.wallpapers);
-        picture-uri-dark = "file://" + builtins.toString(builtins.tail cfg.wallpapers);
+        picture-uri = "file://" + toString( head cfg.wallpapers );
+        picture-uri-dark = "file://" + toString( tail cfg.wallpapers );
       };
 
 

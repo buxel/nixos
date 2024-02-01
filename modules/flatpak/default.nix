@@ -1,5 +1,5 @@
 # modules.flatpak.enable = true;
-{ config, pkgs, lib, ... }:
+{ config, lib, inputs, ... }:
 
 let
 
@@ -8,25 +8,26 @@ let
 
 in {
 
-  options.modules.flatpak = {
-    enable = lib.options.mkEnableOption "flatpak"; 
+  # https://github.com/gmodena/nix-flatpak/blob/main/modules/nixos.nix
+  imports = [ inputs.nix-flatpak.nixosModules.nix-flatpak ];
+
+  # options shared with home-manager module
+  options.modules.flatpak = import ./options.nix { 
+    inherit lib;  
+    inherit (cfg) packages betaPackages;
   };
 
+  # config (mostly) shared with home-manager module
   config = mkIf cfg.enable {
 
-    services.flatpak.enable = true;
-
-    systemd.services.flatpak = {
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        Type = "oneshot";
-        Restart = "on-failure";
-        RestartSec = "5";
-      };
-      path = with pkgs; [ iputils flatpak ];
-      script = builtins.readFile ./flatpak.sh;
+    services.flatpak = import ./config.nix { 
+      inherit lib;  
+      inherit (cfg) packages betaPackages; 
+    } // { 
+      enable = true; 
     };
 
+    # portal required for flatpak
     xdg.portal.enable = true;
 
   };

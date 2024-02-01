@@ -8,8 +8,8 @@
   # Merge with existing this
   this = recursiveUpdate pkgs.this { lib = let
 
-    inherit (builtins) attrNames filter pathExists readDir stringLength;
-    inherit (lib) filterAttrs removePrefix removeSuffix;
+    inherit (builtins) attrNames filter hasAttr hasSuffix isString pathExists readDir stringLength;
+    inherit (lib) filterAttrs flatten removePrefix removeSuffix unique;
     inherit (pkgs) this callPackage stdenv;
 
   # Additional helper functions this.lib.*
@@ -35,6 +35,31 @@
 
     # Trim newlines from beginning and end of string
     trim = text: removePrefix "\n" ( removeSuffix "\n" text );
+
+    # Return pair of modules to import which disables the stable module and replaces it with unstable
+    destabilize = input: path: [
+      { disabledModules = [ path ]; } # first disable stable module
+      ( if hasAttr "darwinModules" input 
+        then "${input}/modules/${path}" # then add unstable home-manager module
+        else "${input}/nixos/modules/${path}" # or add unstable nixos module
+      ) 
+    ];
+
+    # Set appId to package meta
+    appId = appId: package: recursiveUpdate package { meta = { inherit appId; }; };
+
+    # Get appId from pkg.meta, config.services.flatpak.packages, or appId string
+    toAppId = pkg: 
+      let appId = 
+        if isString pkg && pkg != "" then "${pkg}.desktop" # flatpak str (append .desktop)
+        else ( if hasAttr "appId" pkg && pkg.appId != "" then "${pkg.appId}.desktop" # flatpak attr (append .desktop)
+        else if hasAttr "meta" pkg && hasAttr "appId" pkg.meta then pkg.meta.appId else "" ); # package with meta (as-is)
+      in appId;
+
+    # Unique list of appIds from list of packages
+    appIds = list: let 
+      appIds = filter (appId: appId != "") ( map (package: toAppId package) list );
+    in unique appIds;
 
   }; };
 

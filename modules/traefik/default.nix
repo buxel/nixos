@@ -1,24 +1,54 @@
 # modules.traefik.enable = true;
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, this, ... }: let
 
-let
   cfg = config.modules.traefik;
-  secrets = config.age.secrets;
-  inherit (lib) mkIf options;
+  certs = "${config.services.traefik.dataDir}/certs"; # dir for self-signed certificates
+
+  inherit (lib) mkBefore mkForce mkIf mkOption options types;
+  inherit (config.age) secrets;
 
 in {
 
-  options.modules.traefik.enable = options.mkEnableOption "traefik"; 
+  options.modules.traefik = {
+    enable = options.mkEnableOption "traefik"; 
+    certificates = mkOption { 
+      type = with types; listOf str;
+      default = [ this.host "local" ];
+    };
+  };
 
   config = mkIf cfg.enable {
 
-    # agenix
+    # Give traefik user permission to read secrets
     users.users.traefik.extraGroups = [ "secrets" ]; 
 
     # Import the env file containing the CloudFlare token for cert renewal
-    systemd.services.traefik = {
-      serviceConfig.EnvironmentFile = [ secrets.traefik-env.path ];
+    systemd.services.traefik.serviceConfig = {
+      EnvironmentFile = [ secrets.traefik-env.path ];
     };
+
+    # Self-signed certificate directory
+    file."${certs}" = {
+      type = "dir"; mode = 775; 
+      user = "traefik";
+      group = "traefik";
+    };
+
+    # Generate certificates with openssl
+    systemd.services.traefik.preStart = let openssl = "${pkgs.openssl}/bin/openssl"; in mkBefore ''
+      [[ -e ${certs}/key ]] || ${openssl} genrsa -out ${certs}/key 4096 
+      echo "01" > ${certs}/serial 
+      for NAME in ${builtins.toString cfg.certificates}; do
+        export NAME
+        ${openssl} req -new -key ${certs}/key -config ${./openssl.cnf} -extensions v3_req -subj "/CN=$NAME" -out ${certs}/csr 
+        ${openssl} x509 -req -days 365 -in ${certs}/csr -extfile ${./openssl.cnf} -extensions v3_req -CA ${this.ca} -CAkey ${secrets.ca-key.path} -CAserial ${certs}/serial -out ${certs}/crt
+        cat ${certs}/crt ${this.ca} > ${certs}/$NAME.crt
+      done;
+      rm -f ${certs}/csr ${certs}/crt
+    '';
+
+    # Create certificates for traefik dashboard
+    modules.traefik.certificates = [ this.host "traefik.${this.host}" ];
 
     services.traefik = with config.networking; {
 
@@ -46,10 +76,10 @@ in {
         # Listen on port 80 and redirect to port 443
         entryPoints.web = {
           address = ":80";
-          http.redirections.entrypoint = {
-            to = "websecure";
-            scheme = "https";
-          };
+          # http.redirections.entrypoint = {
+          #   to = "websecure";
+          #   scheme = "https";
+          # };
         };
 
         # Run everything on 443
@@ -61,7 +91,7 @@ in {
         certificatesResolvers.resolver-dns.acme = {
           dnsChallenge.provider = "cloudflare";
           storage = "/var/lib/traefik/cert.json";
-          email = "${hostName}@${domain}";
+          email = "${this.host}@${domain}";
         };
 
         global = {
@@ -90,20 +120,27 @@ in {
 
         };
 
-        # Set up wildcard domain certificates for both *.hostname.domain and *.local.domain
         http.routers = {
           traefik = {
             entrypoints = "websecure";
-            rule = "Host(`${hostName}.${domain}`) || Host(`local.${domain}`)";
-            tls.certresolver = "resolver-dns";
-            tls.domains = [{
-              main = "${hostName}.${domain}"; 
-              sans = "*.${hostName}.${domain},local.${domain},*.local.${domain}"; 
-            }];
+            rule = "Host(`${this.host}`) || Host(`traefik.${this.host}`)";
+            tls = {};
             middlewares = "local@file";
             service = "api@internal";
           };
           
+        };
+
+        # Add every module certificate into the default store
+        tls.certificates = map (name: { 
+          certFile = "${certs}/${name}.crt"; 
+          keyFile = "${certs}/key"; 
+        }) cfg.certificates;
+
+        # Also change the default certificate
+        tls.stores.default.defaultCertificate = {
+          certFile = "${certs}/${this.host}.crt"; 
+          keyFile = "${certs}/key"; 
         };
 
       };

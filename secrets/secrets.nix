@@ -7,6 +7,10 @@ with (import ./keys); {
   # Plain-text password (typically used in web services)
   "files/password.age".publicKeys = all;
 
+  # Key for self-signed Certificate Authority
+  # openssl genrsa -out ca-key.pem 4096
+  "files/ca-key.age".publicKeys = all;
+
   # Traefik Environment Variables
   # ---------------------------------------------------------------------------
   # CloudFlare DNS API Token 
@@ -54,9 +58,6 @@ with (import ./keys); {
   # > ssh-keygen -t ed25519 -C btrbk -f /tmp/btrbk
   # "files/btrbk-key.age".publicKeys = all;
 
-  # Environment variables used by Immich
-  "files/immich-env.age".publicKeys = all;
-
   # Withings / Garmin auth
   "files/withings-env.age".publicKeys = all;
 
@@ -73,5 +74,7 @@ with (import ./keys); {
   "files/blobfuse-yaml.age".publicKeys = all;
 
   "files/restic-azure-env.age".publicKeys = all;
+
+
 
 }

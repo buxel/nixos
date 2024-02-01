@@ -4,13 +4,14 @@
 
     # Nix Packages 
     # <https://search.nixos.org/packages>
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
-    unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # Home Manager
     # <https://mipmip.github.io/home-manager-option-search>
     home-manager.url = "github:nix-community/home-manager/release-23.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    home-manager-unstable.url = "github:nix-community/home-manager";
 
     # Nix Index Database
     nix-index-database.url = "github:Mic92/nix-index-database";
@@ -18,7 +19,7 @@
 
     # NixOS profiles for different hardware
     # <https://github.com/NixOS/nixos-hardware>
-    hardware.url = "github:nixos/nixos-hardware";
+    hardware.url = "github:NixOS/nixos-hardware";
 
     # Persist state
     # <https://github.com/nix-community/impermanence>
@@ -39,14 +40,15 @@
     # <https://nur.nix-community.org>
     nur.url = "github:nix-community/NUR";                                   
 
+    # Declarative flatpak manager
+    # <https://github.com/gmodena/nix-flatpak>
+    nix-flatpak.url = "github:gmodena/nix-flatpak"; 
+
     # Hyprland
-    # <https://wiki.hyprland.org/Nix/Hyprland-on-NixOS>
-    hyprland.url = "github:hyprwm/Hyprland";
-    # hyprland.inputs.nixpkgs.follows = "nixpkgs";
+    # <https://github.com/hyprwm/Hyprland/releases>
+    hyprland.url = "github:hyprwm/Hyprland/v0.34.0";
     hyprland-plugins.url = "github:hyprwm/hyprland-plugins";
-    # hyprland-plugins.inputs.hyprland.follows = "hyprland";
     anyrun.url = "github:Kirottu/anyrun";
-    # anyrun.inputs.nixpkgs.follows = "nixpkgs";
 
   };
 
@@ -54,9 +56,9 @@
     
     inherit (self) outputs inputs; 
     inherit (builtins) length;
-    inherit (this.lib) mkAttrs mkUsers mkAdmins mkModules;
+    inherit (this.lib) mkAttrs mkUsers mkAdmins mkModules mkNetwork;
 
-    # initialize this configuration with inputs and binary caches
+    # Initialize this configuration with inputs and binary caches
     this = import ./. { inherit inputs; caches = [
       "https://suderman.cachix.org" "suderman.cachix.org-1:8lYeb2gOOVDPbUn1THnL5J3/L4tFWU30/uVPk7sCGmI="
       "https://nix-community.cachix.org" "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
@@ -75,6 +77,7 @@
 
       # Accept agreements for unfree software
       config.allowUnfree = true;
+      config.nvidia.acceptLicense = true;
       config.joypixels.acceptLicense = true;
 
       # Add to-be-updated packages blocking builds (none right now)
@@ -83,23 +86,27 @@
       # Modify pkgs with this, scripts, packages, nur and unstable
       overlays = [ 
 
-        # this and personal library
+        # this and personal lib functions
         (final: prev: { inherit this; })
         (final: prev: { this = import ./overlays/lib { inherit final prev; }; })
 
-        # Personal scripts
-        (final: prev: import ./overlays/bin { inherit final prev; } )
-        (final: prev: mkAttrs ./overlays/bin ( name: prev.callPackage ./overlays/bin/${name} {} ))
-
-        # Additional packages
-        (final: prev: import ./overlays/pkgs { inherit final prev; } )
-        (final: prev: mkAttrs ./overlays/pkgs ( name: prev.callPackage ./overlays/pkgs/${name} {} ))
+        # Unstable nixpkgs channel
+        (final: prev: { unstable = import inputs.nixpkgs-unstable { inherit system config; }; })
 
         # Nix User Repositories 
         (final: prev: { nur = import inputs.nur { pkgs = final; nurpkgs = final; }; })
 
-        # Unstable nixpkgs channel
-        (final: prev: { unstable = import inputs.unstable { inherit system config; }; })
+        # Package overrides
+        (final: prev: mkAttrs ./overlays/mods ( name: import ./overlays/mods/${name} { inherit final prev; } ))
+        (final: prev: import ./overlays/mods { inherit final prev; } )
+
+        # Additional packages
+        (final: prev: mkAttrs ./overlays/pkgs ( name: prev.callPackage ./overlays/pkgs/${name} {} ))
+        (final: prev: import ./overlays/pkgs { inherit final prev; } )
+
+        # Personal scripts
+        (final: prev: mkAttrs ./overlays/bin ( name: prev.callPackage ./overlays/bin/${name} {} ))
+        (final: prev: import ./overlays/bin { inherit final prev; } )
 
       ];
 
@@ -145,10 +152,11 @@
     nixosConfigurations = mkAttrs ./configurations (
 
       # Make configuration for each subdirectory 
-      dir: mkConfiguration (this // import ./configurations/${dir} // { 
-        users = mkUsers dir;
-        admins = mkAdmins dir;
-        modules = mkModules dir;
+      host: mkConfiguration (this // import ./configurations/${host} // { 
+        users = mkUsers host;
+        admins = mkAdmins host;
+        modules = mkModules host;
+        network = mkNetwork host;
       })
 
     );

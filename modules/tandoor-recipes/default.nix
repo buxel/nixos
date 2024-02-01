@@ -4,7 +4,6 @@
 let
 
   cfg = config.modules.tandoor-recipes;
-  secrets = config.age.secrets;
 
   isPublic = if cfg.public == "" then false else true;
   hostName = if isPublic then cfg.public else cfg.hostName;
@@ -15,6 +14,7 @@ let
 
   inherit (lib) mkIf mkOption mkBefore types;
   inherit (lib.strings) toInt;
+  inherit (config.age) secrets;
 
 in {
 
@@ -31,6 +31,11 @@ in {
     public = mkOption { 
       type = types.str; 
       default = ""; 
+    };
+
+    package = mkOption {
+      type = types.package;
+      default = pkgs.tandoor-recipes;
     };
 
   };
@@ -81,6 +86,7 @@ in {
     services.tandoor-recipes = {
 
       enable = true;
+      package = cfg.package; 
 
       # Service port
       port = toInt port;
