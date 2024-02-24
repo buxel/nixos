@@ -1,11 +1,9 @@
 # modules.jellyfin.enable = true;
-{ config, lib, pkgs, ... }:
-
+{ config, lib, pkgs, this, ... }:
 
 let
 
   cfg = config.modules.jellyfin;
-  port = "8096"; 
   inherit (lib) mkIf mkOption types;
 
 in {
@@ -14,10 +12,14 @@ in {
 
     enable = lib.options.mkEnableOption "jellyfin"; 
 
-    hostName = mkOption {
+    name = mkOption {
       type = types.str;
-      default = "jellyfin.${config.networking.fqdn}";
-      description = "FQDN for the Jellyfin instance";
+      default = "jellyfin";
+    };
+
+    port = mkOption {
+      type = types.port;
+      default = 8096; 
     };
 
   };
@@ -27,25 +29,15 @@ in {
     services.jellyfin = {
       enable = true;
       user = "jellyfin";
-      group = "jellyfin";
+      group = "media";
       openFirewall = true;
     };
 
     users.groups.media.members = [ config.services.jellyfin.user ];
 
-    # Enable reverse proxy
-    modules.traefik.enable = true;
-
-    services.traefik.dynamicConfigOptions.http = {
-      routers.jellyfin = {
-        entrypoints = "websecure";
-        rule = "Host(`${cfg.hostName}`)";
-        tls.certresolver = "resolver-dns";
-        middlewares = "local@file";
-        service = "jellyfin";
-      };
-      services.jellyfin.loadBalancer.servers = [{ url = "http://127.0.0.1:${port}"; }];
-
+    modules.traefik = { 
+      enable = true;
+      routers.${cfg.name} = "http://127.0.0.1:${toString cfg.port}";
     };
 
   };

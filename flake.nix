@@ -46,7 +46,7 @@
 
     # Hyprland
     # <https://github.com/hyprwm/Hyprland/releases>
-    hyprland.url = "github:hyprwm/Hyprland/v0.34.0";
+    hyprland.url = "github:hyprwm/Hyprland/v0.35.0";
     hyprland-plugins.url = "github:hyprwm/hyprland-plugins";
     anyrun.url = "github:Kirottu/anyrun";
 
@@ -56,7 +56,7 @@
     
     inherit (self) outputs inputs; 
     inherit (builtins) length;
-    inherit (this.lib) mkAttrs mkUsers mkAdmins mkModules mkNetwork;
+    inherit (this.lib) mkAttrs mkUsers mkAdmins mkModules;
 
     # Initialize this configuration with inputs and binary caches
     this = import ./. { inherit inputs; caches = [
@@ -152,11 +152,10 @@
     nixosConfigurations = mkAttrs ./configurations (
 
       # Make configuration for each subdirectory 
-      host: mkConfiguration (this // import ./configurations/${host} // { 
-        users = mkUsers host;
-        admins = mkAdmins host;
-        modules = mkModules host;
-        network = mkNetwork host;
+      hostName: mkConfiguration ( import ./networks (this // import ./configurations/${hostName} ) // { 
+        users = mkUsers hostName;
+        admins = mkAdmins hostName;
+        modules = mkModules hostName;
       })
 
     );

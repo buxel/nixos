@@ -165,27 +165,6 @@
           ;
         };
 
-    # Attribute set describing my domains, hostnames and IP addresses  
-    mkNetwork = let
-      inherit (builtins) attrNames filter foldl' isAttrs isString concatStringsSep;
-      inherit (inputs.nixpkgs.lib) hasPrefix; 
-
-      # https://github.com/nix-community/ethereum.nix/blob/main/lib.nix#L20
-      flatten = tree: let
-        op = sum: path: val:
-          if isString val then (sum // { "${concatStringsSep "." path}" = val; })
-          else if isAttrs val then (recurse sum path val)
-          else sum;
-        recurse = sum: path: val:
-          foldl' (sum: key: op sum ([key] ++ path) val.${key}) sum (attrNames val);
-      in recurse {} [] tree;
-
-    in host: rec {
-      dns = import ./network.nix;
-      mapping = flatten dns;
-      hosts = filter (name: hasPrefix host name) (attrNames mapping);
-    };
-
   };
 
 in {
@@ -194,17 +173,12 @@ in {
   inherit inputs lib;
 
   # Default values, overridden in configuration/*/default.nix
-  host = "nixos";  
-  domain = "pingbit.de"; 
-
-  # Self-signed CA certificate (with ca-key in secrets)
-  # openssl req -new -x509 -nodes -extensions v3_ca -days 25568 -subj "/CN=Suderman CA" -key ca.key -out ca.crt  
-  ca = ./ca.crt;
+  hostName = "nixos";  
+  domain = ""; 
 
   users = []; # without users, only root exists
   admins = []; # allow sudo/ssh powers users with keys
   modules = {}; # includes for nixos and home-manager
-  network = {}; # hostnames and IP addresses 
 
   system = "x86_64-linux";
   config = {};

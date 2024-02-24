@@ -25,11 +25,24 @@ in {
     # Passwordless sudo when SSH'ing with keys
     pam.enableSSHAgentAuth = true;
 
-    # Add CA certificate to trusted root store
+    # Add CA certificate to system's trusted root store
     pki.certificateFiles = [ this.ca ];
 
   };
 
+  # Set environment variables for every service
+  systemd.globalEnvironment = {
+
+    # Convince python to trust CA certificate
+    REQUESTS_CA_BUNDLE = this.ca;
+    PIP_CERT = this.ca;
+
+    # Convince node to trust CA certificate
+    NODE_EXTRA_CA_CERTS = this.ca;
+
+  };
+
+  # Enable passwordless ssh access
   services.openssh = {
     enable = true;
 

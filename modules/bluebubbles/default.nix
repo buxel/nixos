@@ -1,5 +1,5 @@
 # modules.bluebubbles.enable = true;
-{ inputs, config, pkgs, lib, ... }:
+{ config, lib, this, ... }:
   
 let 
 
@@ -13,15 +13,14 @@ in {
 
     enable = lib.options.mkEnableOption "bluebubbles"; 
 
-    hostName = mkOption {
+    name = mkOption {
       type = types.str;
-      default = "bluebubbles.${config.networking.fqdn}";
-      description = "FQDN for the bluebubbles server";
+      default = "bluebubbles";
     };
 
     ip = mkOption {
       type = types.str;
-      default = "192.168.2.8";
+      default = "127.0.0.1";
       description = "IP address for the bluebubbles server";
     };
 
@@ -35,17 +34,9 @@ in {
 
   config = mkIf cfg.enable {
 
-    # Enable reverse proxy
-    modules.traefik.enable = true;
-
-    # Reverse proxy
-    services.traefik.dynamicConfigOptions.http = {
-      routers.bluebubbles = {
-        rule = "Host(`${cfg.hostName}`)";
-        tls.certresolver = "resolver-dns";
-        service = "bluebubbles";
-      };
-      services.bluebubbles.loadBalancer.servers = [{ url = "http://${cfg.ip}:${toString cfg.port}"; }];
+    modules.traefik = {
+      enable = true;
+      routers.${cfg.name} = "http://${cfg.ip}:${toString cfg.port}";
     };
 
   }; 

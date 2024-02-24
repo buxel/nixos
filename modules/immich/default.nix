@@ -4,7 +4,7 @@
 let
 
   # https://github.com/immich-app/immich/releases
-  version = "1.93.3";
+  version = "1.95.1";
 
   cfg = config.modules.immich;
 
@@ -24,33 +24,28 @@ in {
     enable = options.mkEnableOption "immich"; 
 
     version = mkOption {
-      description = "Version of the Immich instance";
       type = types.str;
       default = version;
     };
 
-    hostName = mkOption {
-      description = "FQDN for the Immich instance";
+    name = mkOption {
       type = types.str;
-      default = "immich.${config.networking.fqdn}";
+      default = "immich";
     };
 
     dataDir = mkOption {
-      description = "Data directory for the Immich instance";
       type = types.path;
-      default = "/var/lib/immich";
+      default = "/var/lib/immich"; # Data directory for the Immich instance
     };
 
     photosDir = mkOption {
-      description = "Photos directory for the Immich instance";
       type = types.str;
-      default = "";
+      default = ""; # Photos directory for the Immich instance
     };
 
     externalDir = mkOption {
-      description = "External library directory for the Immich instance";
       type = types.str;
-      default = "";
+      default = ""; # External library directory for the Immich instance
     };
 
     environment = mkOption { 
@@ -137,13 +132,18 @@ in {
 
     };
 
-    # Create extensions in database
+    # Immich expects its postgres user to be a "superuser"
+    # ...not ideal, but getting tired of fighting against this...
     systemd.services.postgresql.postStart = mkAfter ''
-      $PSQL -d immich -tAc 'CREATE EXTENSION IF NOT EXISTS cube;'
-      $PSQL -d immich -tAc 'CREATE EXTENSION IF NOT EXISTS earthdistance;'
-      $PSQL -d immich -tAc 'CREATE EXTENSION IF NOT EXISTS vectors;'
+      $PSQL -tAc 'ALTER USER immich WITH SUPERUSER;'
     '';
 
+    # # Create extensions in database
+    # systemd.services.postgresql.postStart = mkAfter ''
+    #   $PSQL -d immich -tAc 'CREATE EXTENSION IF NOT EXISTS cube;'
+    #   $PSQL -d immich -tAc 'CREATE EXTENSION IF NOT EXISTS earthdistance;'
+    #   $PSQL -d immich -tAc 'CREATE EXTENSION IF NOT EXISTS vectors;'
+    # '';
 
     # Init service
     systemd.services.immich = let service = config.systemd.services.immich; in {

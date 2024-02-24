@@ -4,7 +4,6 @@
 let
 
   cfg = config.modules.plex;
-  port = "32400"; 
   inherit (lib) mkIf mkOption types;
   inherit (this.lib) extraGroups;
 
@@ -12,10 +11,13 @@ in {
 
   options.modules.plex = {
     enable = lib.options.mkEnableOption "plex"; 
-    hostName = mkOption {
+    name = mkOption {
       type = types.str;
-      default = "plex.${config.networking.fqdn}";
-      description = "FQDN for the Plex instance";
+      default = "plex";
+    };
+    port = mkOption {
+      type = types.port;
+      default = 32400; 
     };
   };
 
@@ -31,19 +33,9 @@ in {
       package = pkgs.plex;
     };
 
-    # Enable reverse proxy
-    modules.traefik.enable = true;
-
-    # Traefik configuration
-    services.traefik.dynamicConfigOptions.http = {
-      routers.plex = {
-        entrypoints = "websecure";
-        rule = "Host(`${cfg.hostName}`)";
-        tls.certresolver = "resolver-dns";
-        middlewares = "local@file";
-        service = "plex";
-      };
-      services.plex.loadBalancer.servers = [{ url = "http://127.0.0.1:${port}"; }];
+    modules.traefik = { 
+      enable = true;
+      routers.${cfg.name} = "http://127.0.0.1:${toString cfg.port}";
     };
 
     # https://www.plex.tv/claim/

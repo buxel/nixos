@@ -1,5 +1,5 @@
 # modules.unifi.enable = true;
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, this, ... }:
 
 let
 
@@ -18,16 +18,24 @@ in {
 
     enable = options.mkEnableOption "unifi"; 
 
-    hostName = mkOption {
+    name = mkOption {
       type = types.str;
-      default = "unifi.${config.networking.fqdn}";
-      description = "FQDN for the Unifi Controller instance";
+      default = "unifi";
     };
 
     dataDir = mkOption {
       type = types.path;
       default = "/var/lib/unifi";
-      description = "Data directory the Unifi Controller instance";
+    };
+
+    gateway = mkOption {
+      type = types.str;
+      default = ""; # IP address for the gateway
+    };
+
+    gatewayName = mkOption {
+      type = types.str;
+      default = "rt";
     };
 
   };
@@ -60,9 +68,6 @@ in {
       group = config.users.groups.unifi.gid;
     };
 
-    # Enable reverse proxy
-    modules.traefik.enable = true;
-
     # Init service
     systemd.services.unifi = {
       enable = true;
@@ -73,7 +78,12 @@ in {
         Type = "oneshot";
         RemainAfterExit = "yes";
       };
+      path = with pkgs; [ docker ];
+      script = with config.virtualisation.oci-containers.containers; ''
+        docker pull ${unifi.image};
+      '';
     };
+
 
   };
 

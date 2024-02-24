@@ -3,12 +3,16 @@
 let
 
   cfg = config.modules.home-assistant;
-  inherit (lib) mkIf mkBefore;
   inherit (builtins) toString;
+  inherit (lib) mkIf mkBefore;
+  inherit (config.modules) traefik;
 
 in {
 
   config = mkIf (cfg.enable && cfg.zwave != "") {
+
+    # Enable reverse proxy
+    modules.traefik.enable = true;
 
     # Z-Wave JS UI container
     virtualisation.oci-containers.containers.zwave = {
@@ -16,17 +20,10 @@ in {
       autoStart = false;
 
       # Traefik labels
-      extraOptions = [
-        "--label=traefik.enable=true"
-        "--label=traefik.http.routers.zwave.rule=Host(`${cfg.zwaveHostName}`)"
-        "--label=traefik.http.routers.zwave.tls.certresolver=resolver-dns"
-        "--label=traefik.http.routers.zwave.middlewares=local@file"
-        "--label=traefik.http.services.zwave.loadbalancer.server.port=8091"
-        "--label=traefik.http.services.zwave.loadbalancer.server.scheme=http"
+      extraOptions = traefik.labels [ cfg.zwaveName 8091 ]
 
       # Networking and devices
-      ] ++ [
-        "--privileged"
+      ++ [ "--privileged"
         "--network=host"
       ] ++ [
         "--device=${cfg.zwave}:/dev/zwave"

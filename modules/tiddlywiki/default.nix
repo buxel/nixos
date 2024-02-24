@@ -14,14 +14,12 @@ in {
 
     enable = lib.options.mkEnableOption "tiddlywiki"; 
 
-    hostName = mkOption {
+    name = mkOption {
       type = types.str;
-      default = "wiki.${config.networking.fqdn}";
-      description = "FQDN for the Tiddlywiki instance";
+      default = "tiddlywiki";
     };
 
     port = mkOption {
-      description = "Port for Tiddlywiki instance";
       default = 3456;
       type = types.port;
     };
@@ -42,19 +40,9 @@ in {
       };
     };
 
-    # Enable reverse proxy
-    modules.traefik.enable = true;
-
-    # Traefik proxy
-    services.traefik.dynamicConfigOptions.http = {
-      routers.tiddlywiki = {
-        entrypoints = "websecure";
-        rule = "Host(`${cfg.hostName}`)";
-        tls.certresolver = "resolver-dns";
-        middlewares = "local@file";
-        service = "tiddlywiki";
-      };
-      services.tiddlywiki.loadBalancer.servers = [{ url = "http://127.0.0.1:${toString cfg.port}"; }];
+    modules.traefik = { 
+      enable = true;
+      routers.${cfg.name} = "http://127.0.0.1:${toString cfg.port}";
     };
 
   };

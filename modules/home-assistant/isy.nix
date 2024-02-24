@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, this, ... }:
 
 let
 
@@ -9,17 +9,13 @@ in {
 
   config = mkIf (cfg.enable && cfg.isy != "") {
 
-    services.traefik.dynamicConfigOptions.http = {
-      middlewares.isy = {
-        headers.customRequestHeaders.authorization = "Basic {{ env `ISY_BASIC_AUTH` }}";
+    modules.traefik = { 
+      enable = true;
+      routers.${cfg.isyName} = "http://${cfg.isy}:80";
+      http = {
+        middlewares.isy.headers.customRequestHeaders.authorization = "Basic {{ env `ISY_BASIC_AUTH` }}";
+        routers.${cfg.isyName}.middlewares = [ "isy" ];
       };
-      routers.isy = {
-        rule = "Host(`${cfg.isyHostName}`)";
-        middlewares = [ "local@file" "isy@file" ];
-        tls.certresolver = "resolver-dns";
-        service = "isy";
-      };
-      services.isy.loadBalancer.servers = [{ url = "http://${cfg.isy}:80"; }];
     };
 
   };

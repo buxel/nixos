@@ -1,5 +1,5 @@
 # modules.rsshub.enable = true;
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, this, ... }:
 
 let
 
@@ -26,9 +26,9 @@ in {
       type = types.str;
       default = tag;
     };
-    hostName = mkOption {
+    name = mkOption {
       type = types.str;
-      default = "rsshub.${config.networking.fqdn}";
+      default = "rsshub";
     };
   };
 
@@ -46,7 +46,7 @@ in {
         "docker-rsshub-redis.service"
         "docker-rsshub-web.service"
       ];
-      wants =  config.systemd.services.rsshub.before; 
+      wants = config.systemd.services.rsshub.before; 
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = "yes";
