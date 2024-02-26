@@ -141,14 +141,14 @@ in {
             main = [ 
               "${cfg.dataDir}/blacklist.txt"
               "${cfg.dataDir}/nsfw.txt"
-              "https://raw.githubusercontent.com/suderman/nixos/main/modules/blocky/blacklist.txt"
+              "https://raw.githubusercontent.com/buxel/nixos/main/modules/blocky/blacklist.txt"
             ];
           };
           whiteLists = {
             main = [
               "${cfg.dataDir}/whitelist.txt"
               "${cfg.dataDir}/whitelist-optional.txt"
-              "https://raw.githubusercontent.com/suderman/nixos/main/modules/blocky/whitelist.txt"
+              "https://raw.githubusercontent.com/buxel/nixos/main/modules/blocky/whitelist.txt"
             ];
           };
           blockTTL = "1m";
