@@ -9,8 +9,83 @@
   inherit (this.lib) ls;
   inherit (config.age) secrets;
 
+  # Generate a hostName from a url or name
+  mkHostName = args: let
+    inherit (builtins) elemAt isList isNull isString hasAttr;
+    inherit (lib) hasInfix removePrefix splitString;
+    # Extract some.url hostName from https://some.url:443 
+    fromString = url: let
+      withoutProtocol = removePrefix "https://" (removePrefix "http://" url );
+      withoutPort = elemAt ( splitString ":" withoutProtocol ) 0;
+      in withoutPort;
+    # Generate hostName from [ name, hostName ]
+    fromList = args: let
+      name = elemAt args 0;
+      hostName = elemAt args 1;
+      fqdn = if ! isNull hostName then hostName # if "hostName" is set, use that
+             else if (hasInfix "." name) then name # if "name" has a . dot, use that
+             else "${name}.${this.hostName}"; # else, prepend "name" to system's hostname
+      in fqdn;
+    in
+      if isString args then fromString args
+      else if isList args then fromList args
+      else "";
+
+  # Generate traefik service
+  mkService = name: url: let
+    inherit (builtins) isAttrs isString;
+    fromString = url: fromAttrs { inherit url; };
+    fromAttrs = { url, ... }: { 
+      loadBalancer.servers = [{ inherit url; }];
+    };
+    in 
+      if isString url then fromString url
+      else if isAttrs url then fromAttrs url
+      else {};
+
+  # Generate traefik middleware
+  mkMiddleware = name: url: let
+    inherit (builtins) isAttrs isString;
+    fromString = url: fromAttrs { inherit url; };
+    fromAttrs = { url, ... }: { headers.customRequestHeaders.Host = mkHostName url; };
+    in 
+      if isString url then fromString url
+      else if isAttrs url then fromAttrs url
+      else {};
+
+  # Generate traefik router
+  mkRouter = name: url: let
+    inherit (builtins) isAttrs isNull isString hasAttr;
+    inherit (lib) hasInfix;
+    fromString = url: fromAttrs { inherit url; };
+    fromAttrs = { hostName ? null, tls ? null, public ? null, middlewares ? [], ... }: let
+      inherit name;
+      hostName' = mkHostName [ name hostName ];
+      tls' = if ! isNull tls then tls # if tls {} exists, just use that
+        else if ! hasInfix "." name then true # if the name hasn't a dot, assume a private hostname boolean tls
+        else { # else, assume the name is a public domain name that needs Let's Encrypt
+          certresolver = "resolver-dns";
+          domains = [{
+            main = "${hostName'}"; 
+            sans = "*.${hostName'}"; 
+          }];
+        };
+      public' = if ! isNull public then public # if publis is boolean, just use that
+        else if hasInfix "." name then true else false; # if the name has a dot, assume public
+      in {
+        entrypoints = "websecure";
+        rule = "Host(`${hostName'}`)";
+        tls = tls';
+        service = name; # if NOT public (default), middlewares include [ "local" ] to whitelist IPs
+        middlewares = middlewares ++ ( if public' == false then [ "local" name ] else [ name ] );
+      };   
+      in 
+        if isString url then fromString url
+        else if isAttrs url then fromAttrs url
+        else {};
+
   # Generate traefik labels for use with OCI container
-  labels = x: ( let
+  labels = args: ( let
     inherit (builtins) elemAt isList isString length toString;
     fromString = name: fromList [ name ];
     fromList = args: let 
@@ -28,30 +103,81 @@
       "--label=traefik.http.services.${name}.loadbalancer.server.scheme=${scheme}"
     ]);
   in
-    if (isString x) then (fromString x)
-    else if (isList x) then (fromList x)
+    if (isString args) then (fromString args)
+    else if (isList args) then (fromList args)
     else []
   );
 
 in {
 
+  # Import all *.nix files in this directory
   imports = ls ./.;
 
   options.modules.traefik = {
     enable = options.mkEnableOption "traefik"; 
-    http = mkOption { 
-      type = with types; anything; default = {};
-    };
+
+    # Shortcut for adding reverse proxies
     routers = mkOption { 
       type = with types; anything; default = {};
     };
+    # modules.traefik.routers.foo = "http://bar.otherhost:80";
+    # --becomes-->
+    # services.traefik.dynamicConfigOptions.http = {
+    #   routers.foo = {
+    #     rule = "Host(`foo.thishost`)";
+    #     entrypoints = "websecure";
+    #     middlewares = [ "foo" "local" ];
+    #     service = "foo";
+    #     tls = true;
+    #   };
+    #   middlewares.foo = {
+    #     headers.customRequestHeaders.Host = "bar.otherhost";
+    #   };
+    #   services.foo = {
+    #     loadBalancer.servers = [{ url = "http://bar.otherhost:80"; }];
+    #   };
+    # };
+    #
+    # modules.traefik.routers."foo.com" = "https://baz.otherhost:443";
+    # --becomes-->
+    # services.traefik.dynamicConfigOptions.http = {
+    #   routers."foo.com" = {
+    #     rule = "Host(`foo.com`)";
+    #     entrypoints = "websecure";
+    #     middlewares = [ "foo.com" ];
+    #     service = "foo.com";
+    #     tls = {
+    #       certresolver = "resolver-dns"; 
+    #       domains = [{
+    #         main = "foo.com";
+    #         sans = "*.foo.com";
+    #       }];
+    #     };
+    #   };
+    #   middlewares."foo.com" = {
+    #     headers.customRequestHeaders.Host = "baz.otherhost";
+    #   };
+    #   services."foo.com" = {
+    #     loadBalancer.servers = [{ url = "https://baz.otherhost:443"; }];
+    #   };
+    # };
+
+    # Helper function to automatically add traefik labels to OCI containers
     labels = mkOption {
       type = types.anything; readOnly = true; default = labels;
     };
+
+    # Attributes merged with services.traefik.dynamicConfigOptions.http
+    http = mkOption { 
+      type = with types; anything; default = {};
+    };
+
+    # List of certificates to generate
     certificates = mkOption { 
       type = with types; listOf str;
       default = [ this.hostName "local" ];
     };
+
   };
 
   config = mkIf cfg.enable {
@@ -184,7 +310,13 @@ in {
       dynamicConfigOptions = {
 
         http = recursiveUpdate { 
-          middlewares = {
+
+          # Generate traefik middlewares from configuration routers
+          middlewares = ( 
+            mapAttrs mkMiddleware cfg.routers 
+
+          # Include a couple extra middlewares often used
+          ) // {
 
             # Basic Authentication is available. User/passwords are encrypted by agenix.
             login.basicAuth.usersFile = secrets.basic-auth.path;
@@ -198,24 +330,19 @@ in {
               "172.16.0.0/12"  # docker network
               "100.64.0.0/10"  # vpn network
             ];
-
           };
 
           # Generate traefik services from configuration routers
-          services = { "noop" = {}; } // 
-            ( mapAttrs ( name: url: {
-              loadBalancer.servers = [{ inherit url; }];
-            }) cfg.routers );
+          services = ( 
+            mapAttrs mkService cfg.routers
+
+          # Avoid a config error ensuring at least one service defined
+          ) // { "noop" = {}; };
 
           # Generate traefik routers from configuration routers
           routers = (
-            mapAttrs ( name: url: {
-              rule = "Host(`${name}.${this.hostName}`)";
-              entrypoints = "websecure"; tls = true;
-              middlewares = "local";
-              service = name;
-            }) cfg.routers 
-
+            mapAttrs mkRouter cfg.routers
+                
           # Make available the traefik dashboard
           ) // {
             traefik = {
@@ -245,6 +372,7 @@ in {
 
     };
 
+    # Configure prometheus to check traefik's metrics
     services.prometheus = {
       scrapeConfigs = [{ 
         job_name = "traefik"; static_configs = [ 
