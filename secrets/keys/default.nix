@@ -5,7 +5,8 @@
 rec {
 
   users.me = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDaBClteYpmg2puo+fVjz8GgcTC1EyLVmoJxqOW6mxw92IPM3SZ71Ksu/Lm7SRDEAJdfqMqBhExbAvKJcC+EGwErXJcTC8V8+EWJfmQaZXvt5QynLPi6d1EbzB5n042j1dZOHQQg8wlygwPQLcEzHwF9QGQCN7iz/rpMeuSQ/Oxh0wT4m/7gPbdfQB4Dm9r2LRLQQ5zmTOD4ErNaQC/w8K4ecBirPd8X3lZYC+S9kO7x3w02vdWPXq5usipbXU3lv9JtWEhxvg0fNSGrhpClqULH2gGaUq2PKbt1iH+GTWcZv7cQChkhlNlwjTvhkS6/mXgSqGNmWfC/Ulcv56V4g+edLZuga3KtYPA9c/NrIbdjSRuJL18THwDlbvqnwr155zaEP6p/KyH/r9kY+mhlclXUOo46jO2rsWHzCb7WZz13hSXU4WVi5aqNvWf0lZIfO54k9nU6DeI7H4AuIxkNRS7bIJJoNjpi8rsTL80Ri8xt2e9TAjE/UlSlELbeMNfp48=";
-  users.all = [ users.me ];
+  users.me_work = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP5Kh7FNQXVoP88pjaxmSnlp4jL+xtf90ODcvmbh8rgz buxel.dev@gmail.com";
+  users.all = [ users.me users.me_work ];
 
   systems.bender = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG2cTFLpZ3cFnHMrpCCcCFi7/CuOv8h2gvCfhRLTwtve";
   systems.all = [ systems.bender ];
