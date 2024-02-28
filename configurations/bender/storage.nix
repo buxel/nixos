@@ -15,6 +15,10 @@
   ]; 
   bind = [ "bind" ]; 
 
+  immichDataMount = {
+    RequiresMountsFor = config.modules.immich.dataDir;
+  };
+
 in {
 
   # Btrfs mount options
@@ -39,9 +43,9 @@ in {
     gid = config.ids.gids.ocis;
   }; 
 
-  systemd.services.immich.unitConfig = {
-    RequiresMountsFor = config.modules.immich.dataDir;
-  };
+  
+  systemd.services.docker-immich-server.unitConfig = immichDataMount; # This is not enough. /geodata ist still created before the mount at boot
+  systemd.services.immich.unitConfig = immichDataMount;
   modules.blobfuse.mounts."${config.modules.immich.dataDir}" = {
     configPath = config.age.secrets."blobfuse-yaml".path;
     container = "photos";
