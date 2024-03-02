@@ -4,7 +4,7 @@
 let
 
   # https://github.com/immich-app/immich/releases
-  version = "1.96.0";
+  version = "1.97.0";
 
   cfg = config.modules.immich;
 
@@ -31,6 +31,11 @@ in {
     name = mkOption {
       type = types.str;
       default = "immich";
+    };
+
+    alias = mkOption { 
+      type = types.anything; 
+      default = null;
     };
 
     dataDir = mkOption {

@@ -5,8 +5,8 @@
   certs = "${config.services.traefik.dataDir}/certs"; # dir for self-signed certificates
   metricsPort = 81;
 
-  inherit (lib) attrNames mapAttrs mkForce mkIf mkOption options recursiveUpdate types;
-  inherit (this.lib) ls;
+  inherit (lib) attrNames mapAttrs mkForce mkIf mkOption options recursiveUpdate subtractLists types;
+  inherit (this.lib) ls mkAttrs;
   inherit (config.age) secrets;
 
   # Generate a hostName from a url or name
@@ -28,6 +28,58 @@
       if hasInfix "://" arg
         then fromUrl arg 
         else fromName arg;
+
+  # Retrieve all hostNames that Traefik knows about 
+  mkHostNames = { public ? null, external ? null }: let
+    inherit (builtins) attrValues concatMap filter replaceStrings split;
+    inherit (lib) flatten hasInfix hasPrefix hasSuffix;
+
+    # Extract different types of hostNames depending how they are "tagged" in the rule
+    rules' = rule: hasInfix "Host(`" rule; 
+    publicRules' = rule: ( hasInfix "Host(`" rule ) && ( hasInfix "`PUBLIC`" rule );
+    privateRules' = rule: ( hasInfix "Host(`" rule ) && ( ! hasInfix "`PUBLIC`" rule );
+    externalRules' = rule: ( hasInfix "Host(`" rule ) && ( ! hasInfix ".${this.hostName}`" rule );
+    internalRules' = rule: ( hasInfix "Host(`" rule ) && ( hasInfix ".${this.hostName}`" rule );
+
+    # First and second pass of filters
+    certRules = if external == null then rules' else ( if external == true then externalRules' else internalRules' );
+    domainRules = if public == null then rules' else ( if public == true then publicRules' else privateRules' );
+
+    # Remove "PUBLIC" from all hostName rules
+    cleanRules = rule: replaceStrings [ ",`PUBLIC`" ] [ "" ] rule;
+
+    # Extract hostName from inside ( parenthesis )
+    onlyHostNames = (elm: ( 
+      ! hasInfix "(" elm && 
+      ! hasInfix ")" elm && 
+      ! hasInfix "," elm && 
+      ! hasInfix " " elm 
+    ) );
+
+    routerHostNames = let
+      # Collect router rules from traefik dynamic configuration options
+      rules = flatten (map (router: [router.rule]) (attrValues config.services.traefik.dynamicConfigOptions.http.routers));
+      # Filter further to only include router rules
+      hostRules = map cleanRules (filter domainRules (filter certRules rules) );
+      # Split each rule by backtick and collect list of hostNames
+      hostNames = filter onlyHostNames (flatten (map (rule: (split "`" rule)) hostRules));
+    in hostNames;
+
+    labelHostNames = let
+      # Collect extraOptions from all OCI containers 
+      options = concatMap (container: container.extraOptions) (attrValues config.virtualisation.oci-containers.containers);
+      # Filter to only include traefik labels
+      rules = filter (option: hasPrefix "--label=traefik.http.routers" option) options;
+      # Filter further to only include router rules
+      hostRules = map cleanRules (filter domainRules (filter certRules rules) );
+      # Split each rule by backtick and collect list of hostNames
+      hostNames = filter onlyHostNames (flatten (map (rule: (split "`" rule)) hostRules));
+    in hostNames;
+
+    # Include "local" hostName when non-public and non-external 
+    localHostName = if public != true && external != true then [ "local" ] else [];
+
+  in localHostName ++ routerHostNames ++ labelHostNames;
 
   # Generate traefik service
   mkService = name: url: let
@@ -53,21 +105,26 @@
 
   # Generate traefik router
   mkRouter = name: url: let
-    inherit (builtins) isAttrs isNull isString hasAttr;
+    inherit (builtins) elem isAttrs isNull isString hasAttr;
     inherit (lib) hasSuffix;
     fromString = url: fromAttrs { inherit url; };
     fromAttrs = { hostName ? mkHostName name, tls ? null, public ? null, middlewares ? [], ... }: let
 
-      # If public is boolean (explicitly set), just use that value
-      public' = if ! isNull public then public
-        # If the hostName DOES end with this system's hostName, assume private
-        # If the hostName DOESN'T end with this system's hostName, assume public
-        else if hasSuffix ".${this.hostName}" hostName then false else true;  
+      # If the hostName is or ends with this system's hostName, assume internal DNS and private CA
+      # If the hostName is anything else, assume external and needs public DNS with a certresolver
+      external' = if elem hostName ([ this.hostName ] ++ cfg.extraInternalHostNames) || hasSuffix ".${this.hostName}" hostName then false else true;  
+      # If public is boolean (explicitly set), just use that value. Otherwise, match with external.
+      public' = if ! isNull public then public else external';
+
+      # If public, then flag the rule
+      rule' = let
+        publicFlag = if public' == true then ",`PUBLIC`" else "";
+      in "Host(`${hostName}`${publicFlag})";
 
       # If tls is boolean (explicitly set), just use that value
       tls' = if ! isNull tls then tls 
-        # Public hostNames will need a certresolver like Let's Encrypt to issue a certificate
-        else if public' == true then { 
+        # External hostNames will need a certresolver like Let's Encrypt to issue a certificate
+        else if external' == true then { 
           certresolver = "resolver-dns";
           domains = [{
             main = "${hostName}"; 
@@ -81,7 +138,7 @@
 
       in {
         entrypoints = "websecure";
-        rule = "Host(`${hostName}`)";
+        rule = rule';
         tls = tls';
         middlewares = middlewares ++ middlewares';
         service = name;
@@ -93,7 +150,7 @@
 
   # Generate traefik labels for use with OCI container
   mkLabels = args: ( let
-    inherit (builtins) elemAt head isAttrs isList isString length toBool toString;
+    inherit (builtins) elem elemAt head isAttrs isList isString length toBool toString;
     inherit (lib) hasSuffix replaceStrings;
 
     # If only passing a single argument, accept a string
@@ -111,22 +168,26 @@
 
       # Replace all dots with underscores
       name' = replaceStrings ["."] ["_"] name;
-    
-      # If public is boolean (explicitly set), just use that value
-      public' = if ! isNull public then public
-        # If the hostName DOES end with this system's hostName, assume private
-        # If the hostName DOESN'T end with this system's hostName, assume public
-        else if hasSuffix ".${this.hostName}" hostName then false else true;  
+
+      # If the hostName is or ends with this system's hostName, assume internal DNS and private CA
+      # If the hostName is anything else, assume external and needs public DNS with a certresolver
+      external' = if elem hostName ([ this.hostName ] ++ cfg.extraInternalHostNames) || hasSuffix ".${this.hostName}" hostName then false else true;  
+      # If public is boolean (explicitly set), just use that value. Otherwise, match with external.
+      public' = if ! isNull public then public else external';
+
+      # If public then flag the rule
+      rule' = let
+        publicFlag = if public' == true then ",`PUBLIC`" else "";
+      in "Host(`${hostName}`${publicFlag})";
 
       # If tls is boolean (explicitly set), just use that value
       tls' = if ! isNull tls then tls 
-        # Public hostNames will need a certresolver like Let's Encrypt to issue a certificate
-        else if public' == true then [ 
+        # External hostNames will need a certresolver like Let's Encrypt to issue a certificate
+        else if external' == true then [
           "--label=traefik.http.routers.${name'}.tls.certresolver=resolver-dns"
           "--label=traefik.http.routers.${name'}.tls.domains[0].main=${hostName}"
-          "--label=traefik.http.routers.${name'}.tls.domains[1].sans=*.${hostName}"
-        # Private hostNames will use certificates generated by the custom CA
-        ] else [
+          "--label=traefik.http.routers.${name'}.tls.domains[0].sans=*.${hostName}"
+        ] else [ # Internal hostNames will use certificates generated by the custom CA
           "--label=traefik.http.routers.${name'}.tls=true"
         ];
 
@@ -149,7 +210,7 @@
     in [
       "--label=traefik.enable=true"
       "--label=traefik.http.routers.${name'}.entrypoints=websecure"
-      "--label=traefik.http.routers.${name'}.rule=Host(`${hostName}`)"
+      "--label=traefik.http.routers.${name'}.rule=${rule'}"
     ] ++ tls' ++ middlewares' ++ port' ++ scheme';
 
   in
@@ -157,6 +218,27 @@
     else if isList args then fromList args
     else if isAttrs args then fromAttrs args
     else []
+  );
+
+  # Helper function to quickly add alias routers
+  mkAlias = name: args: ( let
+    inherit (builtins) head isList isString tail;
+    hostName = mkHostName name;
+
+    # If only passing a single argument, accept a string
+    fromString = alias: fromList [ alias true ];
+
+    # If passing name, port and scheme, accept a list
+    fromList = args: let
+      alias = head args;
+      url = "https://${hostName}";
+      public = head (tail args);
+    in { "${alias}" = { inherit url public; }; };
+
+  in
+    if isString args then fromString args
+    else if isList args then fromList args
+    else {}
   );
 
 in {
@@ -169,23 +251,64 @@ in {
 
     # Shortcut for adding reverse proxies
     routers = mkOption { 
-      type = with types; anything; default = {};
+      type = with types; anything; 
+      default = {};
     };
 
     # Helper function to automatically add traefik labels to OCI containers
     labels = mkOption {
-      type = types.anything; readOnly = true; default = mkLabels;
+      type = types.anything; 
+      readOnly = true; 
+      default = mkLabels;
+    };
+
+    # Helper function to quickly add alias routers
+    alias = mkOption {
+      type = types.anything; 
+      readOnly = true; 
+      default = mkAlias;
     };
 
     # Attributes merged with services.traefik.dynamicConfigOptions.http
     http = mkOption { 
-      type = with types; anything; default = {};
+      type = with types; anything; 
+      default = {};
     };
 
-    # List of certificates to generate
-    certificates = mkOption { 
-      type = with types; listOf str;
-      default = [ this.hostName "local" ];
+    # All hostHames Traefik detects
+    hostNames = mkOption { 
+      type = with types; listOf str; default = [];
+    };
+
+    # OpenSSL certificates are created from this
+    internalHostNames = mkOption { 
+      type = with types; listOf str; default = [];
+    };
+
+    # Add additional hostNames to treat as internal
+    extraInternalHostNames = mkOption { 
+      type = with types; listOf str; default = [];
+    };
+
+    # LetsEncrypt certificates are created from this
+    externalHostNames = mkOption { 
+      type = with types; listOf str; 
+      default = [];
+    };
+
+    # BlockyDNS mappings are created from this
+    privateHostNames = mkOption { 
+      type = with types; listOf str; default = [];
+    };
+
+    # CloudFlare DNS records are created from this
+    publicHostNames = mkOption { 
+      type = with types; listOf str; default = [];
+    };
+
+    # Collection of hostName to IP addresses from this Traefik configuration
+    mapping = mkOption { 
+      type = with types; anything; default = {}; 
     };
 
   };
@@ -193,12 +316,47 @@ in {
 
   config = mkIf cfg.enable {
 
+    # Combinations:
+    # External / Public:  public service on Internet, using CloudFlare & Let's Encrypt
+    # External / Private: personal service on LAN/VPN, using CloudFlare & Let's Encrypt
+    # Internal / Private: personal service on LAN/VPN, using Blocky & OpenSSL (most common)
+    # Internal / Public: invalid combination
+    modules.traefik = {
+
+      # All hostHames Traefik detects
+      hostNames = mkHostNames {};
+
+      # List of private hostNames using local DNS which will have certificates generated by custom CA
+      # - OpenSSL certificates are created from this
+      internalHostNames = mkHostNames { external = false; } ++ cfg.extraInternalHostNames;
+
+      # List of external hostNames that need certificates generated externally by Let's Encrypt 
+      # - LetsEncrypt certificates are created from this
+      externalHostNames = subtractLists cfg.extraInternalHostNames ( mkHostNames { external = true; } );
+
+      # List of private hostNames using local DNS which will have certificates generated by custom CA or Let's Encrypt
+      # - BlockyDNS mappings are created from this
+      privateHostNames = mkHostNames { public = false; };
+
+      # List of public hostNames that require external DNS records in CloudFlare and certificates by Let's Encrypt
+      # - CloudFlare DNS records are created from this
+      publicHostNames = mkHostNames { public = true; };
+
+      # Collection of hostName to IP addresses from this Traefik configuration
+      mapping = mkAttrs cfg.privateHostNames ( _: this.domains.${this.hostName} );
+
+    };
+
     # Give traefik user permission to read secrets
     users.users.traefik.extraGroups = [ "secrets" ]; 
 
-    # Import the env file containing the CloudFlare token for cert renewal
+    # CloudFlare DNS API Token 
+    # > https://dash.cloudflare.com/profile/api-tokens
+    # ---------------------------------------------------------------------------
+    # CF_DNS_API_TOKEN=xxxxxx
+    # ---------------------------------------------------------------------------
     systemd.services.traefik.serviceConfig = {
-      EnvironmentFile = [ secrets.traefik-env.path ];
+      EnvironmentFile = [ secrets.cloudflare-env.path ];
     };
 
     # Self-signed certificate directory
@@ -216,7 +374,7 @@ in {
     in mkBefore ''
       [[ -e ${certs}/key ]] || ${openssl} genrsa -out ${certs}/key 4096 
       [[ -e ${certs}/serial ]] || echo "01" > ${certs}/serial 
-      for NAME in ${toString (unique cfg.certificates)}; do
+      for NAME in ${toString (unique cfg.internalHostNames)}; do
         export NAME IP=${this.domains.${this.hostName}}
         ${openssl} req -new -key ${certs}/key -config ${./openssl.cnf} -extensions v3_req -subj "/CN=$NAME" -out ${certs}/csr 
         ${openssl} x509 -req -days 365 -in ${certs}/csr -extfile ${./openssl.cnf} -extensions v3_req -CA ${this.ca} -CAkey ${secrets.ca-key.path} -CAserial ${certs}/serial -out ${certs}/crt
@@ -224,36 +382,6 @@ in {
       done;
       rm -f ${certs}/csr ${certs}/crt
     '';
-
-    # Create list of host names including host, reverse proxies and OCI container labels
-    modules.traefik.certificates = let
-      inherit (builtins) attrValues concatMap filter split;
-      inherit (lib) flatten hasInfix hasPrefix hasSuffix;
-
-      routerHostNames = let
-        # Collect router rules from traefik dynamic configuration options
-        rules = flatten (map (router: [router.rule]) (attrValues config.services.traefik.dynamicConfigOptions.http.routers));
-        # Filter rules to the server's host name, starting with a period & ending with backtick parenthesis: .HOSTNAME`)
-        hostRules = filter (rule: hasInfix ".${this.hostName}`)" rule) rules;
-        # Split each rule by backtick and collect list elements that end with server's hostname (starting with a period) 
-        hostNames = filter (elm: hasSuffix ".${this.hostName}" elm) (flatten (map (rule: (split "`" rule)) hostRules));
-      in hostNames;
-
-      labelHostNames = let
-        # Collect extraOptions from all OCI containers 
-        options = concatMap (container: container.extraOptions) (attrValues config.virtualisation.oci-containers.containers);
-        # Filter to only include traefik labels
-        labels = filter (option: hasPrefix "--label=traefik.http.routers" option) options;
-        # Filter further to only include router rules
-        rules = filter (label: hasInfix ".rule=Host(`" label) labels;
-        # Filter rules to the server's host name, starting with a period & ending with backtick parenthesis: .HOSTNAME`)
-        hostRules = filter (label: hasInfix ".${this.hostName}`)" label) labels;
-        # Split each rule by backtick and collect list elements that end with server's hostname (starting with a period) 
-        hostNames = filter (elm: hasSuffix ".${this.hostName}" elm) (flatten (map (rule: (split "`" rule)) hostRules));
-      in hostNames;
-
-    in [ this.hostName ] ++ routerHostNames ++ labelHostNames;
-
 
     # Configure traefik service
     services.traefik = {
@@ -358,7 +486,7 @@ in {
           ) // {
             traefik = {
               entrypoints = "websecure"; tls = {};
-              rule = "Host(`${this.hostName}`) || Host(`traefik.${this.hostName}`)";
+              rule = "Host(`${this.hostName}`, `traefik.${this.hostName}`)";
               middlewares = "local";
               service = "api@internal";
             }; 
@@ -371,7 +499,7 @@ in {
         tls.certificates = map (name: { 
           certFile = "${certs}/${name}.crt"; 
           keyFile = "${certs}/key"; 
-        }) cfg.certificates;
+        }) cfg.internalHostNames;
 
         # Also change the default certificate
         tls.stores.default.defaultCertificate = {
