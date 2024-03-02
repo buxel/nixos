@@ -48,10 +48,14 @@
   };
 
   modules.silverbullet = { enable = true; name = "wiki"; };
+
   modules.traefik = {
-  routers."wiki.zz" = "https://wiki.bender";
-  extraInternalHostNames = [ "wiki.zz" ];
-};
+    routers = {
+      "wiki.zz" = "https://wiki.bender";
+      "photos.zz" = "https://photos.bender";
+    };
+    extraInternalHostNames = [ "wiki.zz"  "photos.zz" ];
+  };
 
 
 

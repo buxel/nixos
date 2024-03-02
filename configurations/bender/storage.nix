@@ -15,9 +15,6 @@
   ]; 
   bind = [ "bind" ]; 
 
-  immichDataMount = {
-    RequiresMountsFor = config.modules.immich.dataDir;
-  };
 
 in {
 
@@ -43,14 +40,17 @@ in {
     gid = config.ids.gids.ocis;
   }; 
 
-  
-  systemd.services.docker-immich-server.unitConfig = immichDataMount; # This is not enough. /geodata ist still created before the mount at boot
-  systemd.services.immich.unitConfig = immichDataMount;
+  systemd.services.immich.unitConfig =  {
+    RequiresMountsFor = config.modules.immich.dataDir;
+  }; 
   modules.blobfuse.mounts."${config.modules.immich.dataDir}" = {
     configPath = config.age.secrets."blobfuse-yaml".path;
     container = "photos";
     uid = config.ids.uids.immich;
     gid = config.ids.gids.immich;
+    # During evaluation of the immich module, the "geodata" folder will be created without checking for the mount to be there
+    # without the "noempty" option, the mount will fail because of the existing (empty) directory
+    #mountOpts = [ "nonempty" ];
   }; 
 
   ## Backup
