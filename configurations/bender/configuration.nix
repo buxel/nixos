@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }: {
+{ config, pkgs, lib, this, ... }: {
 
   imports = [ 
     ./hardware-configuration.nix
@@ -16,7 +16,7 @@
   modules.tailscale.enable = true;
   modules.ddns.enable = true;
   modules.whoami.enable = true;
-  networking.extraHosts = "";
+  # networking.extraHosts = "";
   # networking.nameservers = [ "1.1.1.1" "9.9.9.9" ];
   # networking.nameservers = [ "100.101.148.41" ]; # TODO: Testing, remove later!
 
@@ -48,7 +48,13 @@
   };
 
   modules.silverbullet = { enable = true; name = "wiki"; };
-  
+  modules.traefik = {
+  routers."wiki.zz" = "https://wiki.bender";
+  extraInternalHostNames = [ "wiki.zz" ];
+};
+
+
+
   modules.netdata.enable = true;
 
 }
