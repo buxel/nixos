@@ -15,6 +15,7 @@
   ]; 
   bind = [ "bind" ]; 
 
+
 in {
 
   # Btrfs mount options
@@ -39,14 +40,17 @@ in {
     gid = config.ids.gids.ocis;
   }; 
 
-  systemd.services.immich.unitConfig = {
+  systemd.services.immich.unitConfig =  {
     RequiresMountsFor = config.modules.immich.dataDir;
-  };
+  }; 
   modules.blobfuse.mounts."${config.modules.immich.dataDir}" = {
     configPath = config.age.secrets."blobfuse-yaml".path;
     container = "photos";
     uid = config.ids.uids.immich;
     gid = config.ids.gids.immich;
+    # During evaluation of the immich module, the "geodata" folder will be created without checking for the mount to be there
+    # without the "noempty" option, the mount will fail because of the existing (empty) directory
+    #mountOpts = [ "nonempty" ];
   }; 
 
   ## Backup

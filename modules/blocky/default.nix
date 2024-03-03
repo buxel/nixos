@@ -1,11 +1,11 @@
 # modules.blocky.enable = true;
-{ config, lib, pkgs, this, ... }: 
+{ config, lib, pkgs, this, outputs, ... }: 
 
 let 
 
   cfg = config.modules.blocky;
-  inherit (builtins) toString;
-  inherit (lib) mkIf mkOption mkForce types;
+  inherit (builtins) attrValues mapAttrs toString;
+  inherit (lib) concatStringsSep flatten foldl mkIf mkOption mkForce types;
 
 in {
 
@@ -27,6 +27,22 @@ in {
       type = types.port;
       default = 4000; 
     };
+
+    # Default is to not provide DNS services to the public Internet
+    public = mkOption {
+      type = types.bool;
+      default = false; 
+    };
+
+    # Collection of hostName to IP addresses from all Traefik configurations
+    mapping = mkOption { 
+      type = with types; anything; 
+      readOnly = true;
+      default = foldl (a: b: a // b) {} ( 
+        attrValues ( mapAttrs ( name: host: host.config.modules.traefik.mapping ) outputs.nixosConfigurations )
+      );
+    };
+
   };
 
   # Use blocky to add custom domains and block unwanted domains
@@ -74,6 +90,52 @@ in {
       };
     };
 
+    services.prometheus = {
+      scrapeConfigs = [{ 
+        job_name = "blocky"; static_configs = [ 
+          { targets = [ "127.0.0.1:${toString cfg.httpPort}" ]; } 
+        ]; 
+      }];
+    };
+
+    # Public firewall rules
+    networking.firewall = if cfg.public == true then {
+      allowedTCPPorts = [ cfg.dnsPort cfg.httpPort ];
+      allowedUDPPorts = [ cfg.dnsPort ];
+
+    # Private firewall rules (default)
+    } else {
+
+      extraCommands = let
+        dnsPort = toString cfg.dnsPort;
+        httpPort = toString cfg.httpPort;
+
+        # We only want blocky to be available to local and VPN requests
+        localRanges = [
+          "127.0.0.1/32"   # local host
+          "192.168.0.0/16" # local network
+          "10.0.0.0/8"     # local network
+          "172.16.0.0/12"  # docker network
+          "100.64.0.0/10"  # vpn network
+        ];
+
+      in concatStringsSep "\n" (
+
+        # Only allow UDP DNS traffic from local IP ranges
+        map ( range: "iptables -A INPUT -p udp --dport ${dnsPort} -s ${range} -j ACCEPT" ) localRanges ++
+        [ "iptables -A INPUT -p udp --dport ${dnsPort} -j DROP" ] ++
+
+        # Only allow TCP DNS traffic from local IP ranges
+        map ( range: "iptables -A INPUT -p tcp --dport ${dnsPort} -s ${range} -j ACCEPT" ) localRanges ++
+        [ "iptables -A INPUT -p tcp --dport ${dnsPort} -j DROP" ] ++
+
+        # Only allow TCP HTTP traffic from local IP ranges
+        map ( range: "iptables -A INPUT -p tcp --dport ${httpPort} -s ${range} -j ACCEPT" ) localRanges ++
+        [ "iptables -A INPUT -p tcp --dport ${httpPort} -j DROP" ]
+
+      );
+    };
+
     # services.redis.servers.blocky = {
     #   enable = true;
     #   openFirewall = true;
@@ -83,21 +145,13 @@ in {
     #   settings.protected-mode = "no";
     # };
 
-    services.prometheus = {
-      scrapeConfigs = [{ 
-        job_name = "blocky"; static_configs = [ 
-          { targets = [ "127.0.0.1:${toString cfg.httpPort}" ]; } 
-        ]; 
-      }];
-    };
-
     services.blocky = {
       enable = true;
       settings = {
 
         ports = {
-          dns = map (ip: "${ip}:${toString cfg.dnsPort}") this.addresses;
-          http = map (ip: "${ip}:${toString cfg.httpPort}") this.addresses;
+          dns = cfg.dnsPort;
+          http = cfg.httpPort;
         };
 
         # redis = {
@@ -125,8 +179,9 @@ in {
         }];
         connectIPVersion = "v4";
 
+        # Combine mappings from networks directory and Traefik configurations
         customDNS = {
-          inherit (this) mapping;
+          mapping = this.mapping // cfg.mapping;
           filterUnmappedTypes = true;
           customTTL = "1h";
         };
@@ -141,14 +196,14 @@ in {
             main = [ 
               "${cfg.dataDir}/blacklist.txt"
               "${cfg.dataDir}/nsfw.txt"
-              "https://raw.githubusercontent.com/suderman/nixos/main/modules/blocky/blacklist.txt"
+              "https://raw.githubusercontent.com/buxel/nixos/main/modules/blocky/blacklist.txt"
             ];
           };
           whiteLists = {
             main = [
               "${cfg.dataDir}/whitelist.txt"
               "${cfg.dataDir}/whitelist-optional.txt"
-              "https://raw.githubusercontent.com/suderman/nixos/main/modules/blocky/whitelist.txt"
+              "https://raw.githubusercontent.com/buxel/nixos/main/modules/blocky/whitelist.txt"
             ];
           };
           blockTTL = "1m";
@@ -158,11 +213,6 @@ in {
           };
         };
       };
-    };
-
-    networking.firewall = {
-      allowedTCPPorts = [ cfg.dnsPort cfg.httpPort ];
-      allowedUDPPorts = [ cfg.dnsPort ];
     };
 
   };
