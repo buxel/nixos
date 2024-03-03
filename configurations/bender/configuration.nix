@@ -53,8 +53,9 @@
     routers = {
       "wiki.zz" = "https://wiki.bender";
       "photos.zz" = "https://photos.bender";
+      "cloud.zz" = "https://cloud.bender";
     };
-    extraInternalHostNames = [ "wiki.zz"  "photos.zz" ];
+    extraInternalHostNames = [ "wiki.zz"  "photos.zz" "cloud.zz" ];
   };
 
 
