@@ -37,25 +37,27 @@
   # Ocis
   modules.ocis = { 
     enable = true;
-    name = "cloud";
+    name = "cloud.zz";
   };
+
+ #  virtualisation.oci-containers.containers.ocis.environment.OCIS_URL = lib.mkForce "https://cloud.zz";
  
   # Immich 
   modules.immich = {
     enable = true;
-    name = "photos";
+    name = "photos.zz";
     dataDir = "/mnt/photos";
   };
 
-  modules.silverbullet = { enable = true; name = "wiki"; };
+  modules.silverbullet = { enable = true; name = "wiki.zz"; };
 
   modules.traefik = {
-    routers = {
-      "wiki.zz" = "https://wiki.bender";
-      "photos.zz" = "https://photos.bender";
-      "cloud.zz" = "https://cloud.bender";
-    };
-    extraInternalHostNames = [ "wiki.zz"  "photos.zz" "cloud.zz" ];
+    # routers = {
+    #   "wiki.zz" = "https://wiki.bender";
+    #   "photos.zz" = "https://photos.bender";
+    #   "cloud.zz" = "https://cloud.bender";
+    # };
+    extraInternalHostNames = [ "wiki.zz" "photos.zz" "cloud.zz" ];
   };
 
 
