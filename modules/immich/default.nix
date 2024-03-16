@@ -103,7 +103,7 @@ in {
       group = config.ids.gids.immich;
     }; in {
       "${cfg.dataDir}" = dir;
-      "${cfg.dataDir}/geocoding" = dir;
+      #"${cfg.dataDir}/geocoding" = dir; # this conflicts with blobfuse mount 
     };
 
     # Enable database

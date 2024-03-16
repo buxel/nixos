@@ -17,7 +17,7 @@
   modules.ddns.enable = true;
   modules.whoami.enable = true;
   # networking.extraHosts = "";
-  # networking.nameservers = [ "1.1.1.1" "9.9.9.9" ];
+  networking.nameservers = [ "1.1.1.1" "9.9.9.9" ];
   # networking.nameservers = [ "100.101.148.41" ]; # TODO: Testing, remove later!
 
   # Custom DNS
@@ -40,29 +40,31 @@
     name = "cloud.zz";
   };
 
- #  virtualisation.oci-containers.containers.ocis.environment.OCIS_URL = lib.mkForce "https://cloud.zz";
- 
+
   # Immich 
   modules.immich = {
     enable = true;
     name = "photos.zz";
     dataDir = "/mnt/photos";
   };
+  # Remove generation of the /geocoding dir because it breaks mounting at /mnt/photos
+  # TODO: commented out in the module. my attempts below failed to remove the folder from the config
+  # file = builtins.removeAttrs (import ../../modules/immich/default.nix) [ "/mnt/photos/geocoding" ];
+  # file."/mnt/photos/geocoding" = lib.mkForce null;
+
 
   modules.silverbullet = { enable = true; name = "wiki.zz"; };
 
   modules.traefik = {
-    # routers = {
-    #   "wiki.zz" = "https://wiki.bender";
-    #   "photos.zz" = "https://photos.bender";
-    #   "cloud.zz" = "https://cloud.bender";
-    # };
-    extraInternalHostNames = [ "wiki.zz" "photos.zz" "cloud.zz" ];
+    extraInternalHostNames = [ "wiki.zz" "photos.zz" "cloud.zz" "paperless2.zz" ];
   };
 
 
 
   modules.netdata.enable = true;
+
+  modules.paperless.enable = true;
+  modules.paperless.name = "paperless2.zz";
 
 }
 

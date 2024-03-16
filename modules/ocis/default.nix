@@ -110,7 +110,7 @@ in {
         mkdir -p ${etc}
         [ -e ${etc}/${encryptionSecret} ] || ${openssl} rand -out ${etc}/${encryptionSecret} 32 
         [ -e ${etc}/${signingKey} ] || ${openssl} genpkey -algorithm RSA -out ${etc}/${signingKey} -pkeyopt rsa_keygen_bits:4096
-        chown -R ${toOwnership uids.ocis gids.ocis} ${cfg.dataDir}
+        # chown -R ${toOwnership uids.ocis gids.ocis} ${cfg.dataDir} # TODO: add back once not using blobfuse anymore
       '';
 
       # traefik should be running before this service starts

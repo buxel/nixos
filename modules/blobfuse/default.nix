@@ -68,12 +68,7 @@ let
           "allow_other"
           "uid=${toString values.uid}"
           "gid=${toString values.gid}"
-
-          # SystemD
-          # "x-systemd.automount"
           
-          # "env.PATH=/run/wrappers/bin" # for fusermount3
-
           # blobfuse  
           "--config-file=${values.configPath}"
           "--container-name=${values.container}"
