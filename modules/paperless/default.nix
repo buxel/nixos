@@ -5,6 +5,7 @@ let
 
   cfg = config.modules.paperless;
   inherit (lib) mkIf mkOption types;
+  inherit (builtins) toString;
   inherit (this.lib) extraGroups;
   inherit (config.age) secrets;
   inherit (config.modules) traefik;
@@ -19,7 +20,7 @@ in {
     };    
     port = mkOption {
       type = types.port;
-      default = config.services.paperless.port;  
+      default = 28981;  
     };
   };
 
@@ -31,9 +32,11 @@ in {
       extraConfig = {
         PAPERLESS_OCR_LANGUAGE = "deu+eng";
         PAPERLESS_FILENAME_FORMAT="{created_year}/{correspondent}/{title}";
+        PAPERLESS_URL="https://${traefik.hostName cfg.name}";
       };
-      # passwordFile = secrets.alphanumeric-secret.path; # service "paperless-copy-password.service" keeps failing if enabled
-      address = traefik.hostName cfg.name;
+      passwordFile = secrets.alphanumeric-secret.path;
+      # address = traefik.hostName cfg.name; # this evaluates to "paperless.bender", which resolves to a TS IP. Traefik cannot reverse proxy to that for some reason
+      port = cfg.port;
     };
 
     modules.traefik = { 

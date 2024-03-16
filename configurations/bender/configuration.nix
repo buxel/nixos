@@ -56,14 +56,16 @@
   modules.silverbullet = { enable = true; name = "wiki.zz"; };
 
   modules.traefik = {
-    extraInternalHostNames = [ "wiki.zz" "photos.zz" "cloud.zz" ];
+    extraInternalHostNames = [ "wiki.zz" "photos.zz" "cloud.zz" "paperless2.zz" ];
   };
 
 
 
   modules.netdata.enable = true;
 
-  # modules.paperless.enable = true;
+  modules.paperless.enable = true;
+  modules.paperless.name = "paperless2.zz";
+
 }
 
 
