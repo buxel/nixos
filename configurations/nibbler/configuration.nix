@@ -31,5 +31,14 @@
     caPort = 1234;
   };
 
+  modules.traefik = {
+    extraInternalHostNames = [ "paperless.zz" ];
+  };
+
+  modules.paperless = {
+    enable = true;  
+    name = "paperless.zz";
+  };
+
 
 }
