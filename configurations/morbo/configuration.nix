@@ -11,9 +11,13 @@
       ./hardware-configuration.nix
     ];
 
+  # Allow vscode-remote to work on this system
+  programs.nix-ld.enable = true;
+
   modules.tailscale.enable = true;
   modules.ddns.enable = true;
   
   # Services
   modules.whoami.enable = true;
+  modules.cockpit.enable = true;
 }
