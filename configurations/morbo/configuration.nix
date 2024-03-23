@@ -12,7 +12,7 @@
       # https://github.com/nix-community/nixos-generators/issues/79
       "${modulesPath}/virtualisation/lxc-container.nix"
       # Include the default lxd configuration.
-      "./hardware-configuration.nix"
+      ./hardware-configuration.nix
     ];
 
   # This doesn't do _everything_ we need, because `boot.isContainer` is
