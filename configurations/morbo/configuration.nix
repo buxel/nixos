@@ -22,11 +22,16 @@
   modules.cockpit.enable = true;
 
   modules.traefik = {
-    extraInternalHostNames = [ "sonarr.zz" ];
+    extraInternalHostNames = [ "sonarr.zz" "jellyfin.zz"];
   };
 
   modules.sonarr = {
     enable = true;  
     name = "sonarr.zz";
+  };
+
+  modules.jellyfin = {
+    enable = true;  
+    name = "jellyfin.zz";
   };
 }
