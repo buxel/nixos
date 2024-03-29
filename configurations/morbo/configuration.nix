@@ -20,4 +20,13 @@
   # Services
   modules.whoami.enable = true;
   modules.cockpit.enable = true;
+
+  modules.traefik = {
+    extraInternalHostNames = [ "sonarr.zz" ];
+  };
+
+  modules.sonarr = {
+    enable = true;  
+    name = "sonarr.zz";
+  };
 }
