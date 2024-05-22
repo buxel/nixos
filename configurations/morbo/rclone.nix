@@ -15,15 +15,15 @@ in
     # Service configuration
     serviceConfig = {
       Type = "simple";
-      ExecStartPre = "/run/current-system/sw/bin/mkdir -p /home/me/spica"; # Creates folder if didn't exist
-      #ExecStart = "${pkgs.rclone}/bin/rclone mount --config ${secrets.rclone-conf.path} spica: /mnt/spica"; # Mounts
-      ExecStart = "${pkgs.rclone}/bin/rclone mount --config /home/me/.config/rclone/rclone.conf spica: /home/me/spica"; # Mounts
-      ExecStop = "/run/current-system/sw/bin/fusermount -u /home/me/spica"; # Dismounts
+      ExecStartPre = "/run/current-system/sw/bin/mkdir -p /mnt/rclone/seedbox/"; # Creates folder if didn't exist
+      ExecStart = "${pkgs.rclone}/bin/rclone mount --config ${secrets.rclone-conf.path} spica: /mnt/spica"; # Mounts
+      #ExecStart = "${pkgs.rclone}/bin/rclone mount --config /home/me/.config/rclone/rclone.conf spica: /mnt/rclone/seedbox/"; # Mounts
+      ExecStop = "/run/current-system/sw/bin/fusermount -u /mnt/rclone/seedbox/"; # Dismounts
       Restart = "on-failure";
       RestartSec = "10s";
       # PermissionsStartOnly = true; # Use root to create the mountpoint, run with user:group specified below
-      User = "me";
-      Group = "users";
+      User = "root";
+      Group = "media";
       Environment = [ "PATH=/run/wrappers/bin/:$PATH" ]; # Required environments
     };
   };

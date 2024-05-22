@@ -32,7 +32,7 @@
   modules.cockpit.enable = true;
 
   modules.traefik = {
-    extraInternalHostNames = [ "sonarr.zz" "jellyfin.zz"];
+    extraInternalHostNames = [ "sonarr.zz" "jellyfin.zz" "prowlarr.zz"];
   };
 
   modules.sonarr = {
@@ -43,5 +43,10 @@
   modules.jellyfin = {
     enable = true;  
     name = "jellyfin.zz";
+  };
+
+  modules.prowlarr = {
+    enable = true;  
+    name = "prowlarr.zz";
   };
 }
