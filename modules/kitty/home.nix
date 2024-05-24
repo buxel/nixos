@@ -73,12 +73,12 @@ in {
         "ctrl+insert" = "copy_to_clipboard";
         "shift+insert" = "paste_from_clipboard";
         "super+w" = "close_window";
-        "super+shift+t" = "new_window";
+        "super+n" = "new_window";
         "super+t" = "new_tab";
         "super+]" = "next_tab";
         "super+[" = "previous_tab";
-        "super+equal" = "change_font_size all +2.0";
-        "super+minus" = "change_font_size all -2.0";
+        "super+equal" = "change_font_size all +1.0";
+        "super+minus" = "change_font_size all -1.0";
         "super+0" = "change_font_size all 0";
         "super+r" = "load_config_file";
       };
