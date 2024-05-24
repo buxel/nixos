@@ -16,8 +16,14 @@ let
 
 in {
 
-  # Add all users found in configurations/*/home/*
+  # Reserve user ids, fallback on null
+  ids.uids = {
+    me = 1000;
+  };
+
+  # Add all users found in configurations/*/users/*
   users.users = mkAttrs this.users (user: { 
+    uid = with config.ids; if hasAttr user uids then uids."${user}" else null;
     isNormalUser = true;
     shell = pkgs.zsh;
     home = "/home/${user}";

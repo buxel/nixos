@@ -17,7 +17,7 @@ in {
 
     programs.waybar = {
       enable = true;
-      package = pkgs.unstable.waybar; # need >= 0.9.22
+      package = pkgs.waybar; # need >= 0.9.22
 
       systemd = {
         enable = true;

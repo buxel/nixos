@@ -1,64 +1,72 @@
-# services.keyd.enable = true;
-{ config, lib, pkgs, ... }: 
+# modules.keyd.enable = true;
+{ config, lib, pkgs, this, ... }: let 
 
-with pkgs; 
-
-let 
-  cfg = config.services.keyd;
+  cfg = config.modules.keyd;
+  ini = pkgs.formats.ini {};
+  inherit (lib) mkIf mkOption types;
+  inherit (this.lib) mkShellScript;
 
 in {
-  options = {
-    services.keyd.enable = lib.options.mkEnableOption "keyd"; 
+
+  options.modules.keyd = {
+    enable = lib.options.mkEnableOption "keyd"; 
+    service = lib.options.mkEnableOption "keyd-application-mapper"; 
+    applications = mkOption {
+      type = types.anything;
+      default = {};
+    };
   };
 
-  config = lib.mkIf cfg.enable {
+  config = mkIf cfg.enable {
 
+    # Configuration for each application
     xdg.configFile = {
-      "keyd/app.conf".text = ''
+      "keyd/app.conf".source = ini.generate "app.conf" ( {
 
-        [alacritty]
+        "*" = {
+          "meta.a" = "C-a";
+          "meta.z" = "C-z";
+        };
 
-        alt.] = macro(C-g n)
-        alt.[ = macro(C-g p)
+        firefox = {
+          "alt.f" = "C-f";
+          "alt.l" = "C-l";
+        };
 
-        [chromium]
+        org-gnome-nautilus = {
+          "alt.enter" = "f2";
+          "alt.r" = "f2";
+          "alt.i" = "C-i";
+        };
 
-        alt.[ = C-S-tab
-        alt.] = macro(C-tab)
+        # [geary]
+        # [telegramdesktop]
+        # [1password]
+        # [fluffychat]
+        # [gimp-2-9]
+        # [obsidian]
+        # [slack]
 
-        [org-gnome-nautilus]
+      } // cfg.applications );
 
-        alt.enter = f2
-        alt.r = f2
-        alt.i = C-i
+    };
 
-        [org-wezfurlong-wezterm]
-
-        leftalt = layer(meta_cmd)
-
-        [firefox]
-
-        # control.a = home
-        # control.e = end
-        # control.f = right
-        # control.b = left
-        # control.w = C-right
-        # alt.f = C-f
-
-        [geary]
-
-        [telegramdesktop]
-
-        [1password]
-
-        [fluffychat]
-
-        [gimp-2-9]
-
-        [obsidian]
-
-        [slack]
-      '';
+    # User service runs keyd-application-mapper
+    systemd.user.services = mkIf cfg.service {
+      keyd.Unit = {
+        Description = "Keyd Application Mapper";
+        After = [ "graphical-session.target" ];
+        Requires = [ "graphical-session.target" ];
+      };
+      keyd.Install.WantedBy = [ "default.target" ];
+      keyd.Service = {
+        Type = "simple";
+        Restart = "always";
+        ExecStart = mkShellScript {
+          inputs = [ pkgs.keyd ];
+          text = "keyd-application-mapper";
+        };
+      };
     };
 
   };
