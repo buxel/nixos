@@ -13,13 +13,7 @@ in {
 
     # Flake nixos module
     # https://github.com/hyprwm/Hyprland/blob/main/nix/module.nix
-    [ inputs.hyprland.nixosModules.default ] ++
-
-    # Unstable upstream nixos module
-    # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/programs/wayland/hyprland.nix
-    # Note: unstable hyprland module was moved from programs/hyprland.nix to programs/wayland/hyprland.nix
-    ( destabilize inputs.nixpkgs-unstable [ "programs/hyprland.nix" "programs/wayland/hyprland.nix" ] );
-
+    [ inputs.hyprland.nixosModules.default ];
 
   options.modules.hyprland = {
     enable = lib.options.mkEnableOption "hyprland"; 
@@ -27,25 +21,18 @@ in {
 
   config = mkIf cfg.enable {
 
-    programs.hyprland = {
-      enable = true;
-    };
-
+    programs.hyprland.enable = true;
     programs.light.enable = true;
 
-    # Enable sound.
+    # Enable audio
     sound.enable = true;
-    services.pipewire.enable = true;
-
-    # # Enable audio
-    # sound.enable = true;
-    # services.pipewire = {
-    #   enable = true;
-    #   alsa.enable = true;
-    #   alsa.support32Bit = true;
-    #   pulse.enable = true;
-    #   wireplumber.enable = true;
-    # };
+    services.pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+      wireplumber.enable = true;
+    };
 
     # Mount, trash, and other functionalities
     services.gvfs.enable = true;
@@ -53,19 +40,17 @@ in {
     # Thumbnail support for images
     services.tumbler.enable = true;
 
-    # Login screen
-    services.xserver = {
-      enable = true;
-      desktopManager.xterm.enable = false;
-      displayManager = {
-        defaultSession = "hyprland";
-        lightdm.enable = true;
-        # gdm = {
-        #   enable = true;
-        #   wayland = true;
-        # };
-      };
-    };
+    # # Login screen
+    # services = {
+    #   # displayManager.defaultSession = "hyprland";
+    #   xserver = {
+    #     enable = true;
+    #     # desktopManager.xterm.enable = false;
+    #     displayManager = {
+    #       lightdm.enable = true;
+    #     };
+    #   };
+    # };
 
     environment.sessionVariables = {
       NIXOS_OZONE_WL = "1";
@@ -78,18 +63,18 @@ in {
       ncmpcpp # a mpd client with a UI
       networkmanagerapplet # provide GUI app: nm-connection-editor
       wl-clipboard
+      vulkan-tools
     ];
 
-
-    xdg.portal = {
-      enable = true;
-      wlr.enable = true;
-      extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-      # extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
-    };
+    # https://wiki.hyprland.org/Useful-Utilities/xdg-desktop-portal-hyprland/
+    # > XDPH doesn’t implement a file picker. For that, I recommend installing xdg-desktop-portal-gtk alongside XDPH.
+    xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
 
     # fix https://github.com/ryan4yin/nix-config/issues/10
     security.pam.services.swaylock = {};
+
+    # https://aylur.github.io/ags-docs/config/utils/#authentication
+    security.pam.services.ags = {};
 
   };
 
