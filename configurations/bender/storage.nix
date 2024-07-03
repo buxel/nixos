@@ -41,9 +41,9 @@ in {
   }; 
 
   systemd.services.immich.unitConfig =  {
-    RequiresMountsFor = config.modules.immich.dataDir;
+    RequiresMountsFor = config.services.immich.dataDir;
   }; 
-  modules.blobfuse.mounts."${config.modules.immich.dataDir}" = {
+  modules.blobfuse.mounts."${config.services.immich.dataDir}" = {
     configPath = config.age.secrets."blobfuse-yaml".path;
     container = "photos";
     uid = config.ids.uids.immich;

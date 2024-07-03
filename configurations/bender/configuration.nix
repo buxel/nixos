@@ -26,7 +26,7 @@
   # Allow vscode-remote to work on this system
   programs.nix-ld.enable = true;
 
-  modules.cockpit.enable = true;
+  # modules.cockpit.enable = true;
 
   # Serve CA cert on http://<bender>:1234
   services.traefik = {
@@ -42,7 +42,7 @@
 
 
   # Immich 
-  modules.immich = {
+  services.immich = {
     enable = true;
     name = "photos.zz";
     dataDir = "/mnt/photos";
@@ -53,7 +53,10 @@
   # file."/mnt/photos/geocoding" = lib.mkForce null;
 
 
-  modules.silverbullet = { enable = true; name = "wiki.zz"; };
+  services.silverbullet-docker = { 
+    enable = true;
+     name = "wiki.zz"; 
+  };
 
   services.traefik = {
     extraInternalHostNames = [ "wiki.zz" "photos.zz" "cloud.zz"];
@@ -61,7 +64,7 @@
 
 
 
-  modules.netdata.enable = true;
+  # modules.netdata.enable = true;
 
 }
 

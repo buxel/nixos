@@ -29,24 +29,25 @@
   
   # Services
   modules.whoami.enable = true;
-  modules.cockpit.enable = true;
+  # modules.cockpit.enable = true;
 
   services.traefik = {
     extraInternalHostNames = [ "sonarr.zz" "jellyfin.zz" "prowlarr.zz"];
   };
 
-  modules.sonarr = {
+  services.sonarr = {
     enable = true;  
-    name = "sonarr.zz";
+    # name = "sonarr.zz"; # TODO: name is not supported anymore. use traefik config 
   };
 
   modules.jellyfin = {
     enable = true;  
-    name = "jellyfin.zz";
+    # name = "jellyfin.zz";
   };
 
-  modules.prowlarr = {
-    enable = true;  
-    name = "prowlarr.zz";
-  };
+  # TODO: migrate from old config
+  # services.prowlarr = {
+  #   enable = true;  
+  #   name = "prowlarr.zz";
+  # };
 }
