@@ -8,7 +8,7 @@ let
   inherit (builtins) toString;
   inherit (this.lib) extraGroups;
   inherit (config.age) secrets;
-  inherit (config.modules) traefik;
+  inherit (config.services.traefik.lib) mkHostName mkLabels;
 
 in {
 
@@ -17,7 +17,11 @@ in {
     name = mkOption {
       type = types.str;
       default = "paperless";
-    };    
+    }; 
+    hostName = mkOption {
+      type = types.str;
+      default = (mkHostName cfg.name);
+    };   
     port = mkOption {
       type = types.port;
       default = 28981;  
@@ -32,7 +36,7 @@ in {
       extraConfig = {
         PAPERLESS_OCR_LANGUAGE = "deu+eng";
         PAPERLESS_FILENAME_FORMAT="{created_year}/{correspondent}/{title}";
-        PAPERLESS_URL="https://${traefik.hostName cfg.name}";
+        PAPERLESS_URL="https://$${cfg.hostName}";
       };
       passwordFile = secrets.alphanumeric-secret.path;
       # address = traefik.hostName cfg.name; # this evaluates to "paperless.bender", which resolves to a TS IP. Traefik cannot reverse proxy to that for some reason
