@@ -29,7 +29,7 @@
   modules.cockpit.enable = true;
 
   # Serve CA cert on http://<bender>:1234
-  modules.traefik = {
+  services.traefik = {
     enable = true;
     caPort = 1234;
   };
@@ -55,7 +55,7 @@
 
   modules.silverbullet = { enable = true; name = "wiki.zz"; };
 
-  modules.traefik = {
+  services.traefik = {
     extraInternalHostNames = [ "wiki.zz" "photos.zz" "cloud.zz"];
   };
 
