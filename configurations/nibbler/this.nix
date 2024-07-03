@@ -1,0 +1,4 @@
+{
+  hostName = "nibbler";
+  domain = "home";
+}
