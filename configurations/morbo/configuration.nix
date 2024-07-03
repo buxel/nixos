@@ -31,7 +31,7 @@
   modules.whoami.enable = true;
   modules.cockpit.enable = true;
 
-  modules.traefik = {
+  services.traefik = {
     extraInternalHostNames = [ "sonarr.zz" "jellyfin.zz" "prowlarr.zz"];
   };
 

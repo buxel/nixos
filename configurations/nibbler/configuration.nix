@@ -23,15 +23,15 @@
   # Allow vscode-remote to work on this system
   programs.nix-ld.enable = true;
 
-  modules.cockpit.enable = true;
+  # modules.cockpit.enable = true;
 
   # Serve CA cert on http://<nibbler>:1234
-  modules.traefik = {
+  services.traefik = {
     enable = true;
     caPort = 1234;
   };
 
-  modules.traefik = {
+  services.traefik = {
     extraInternalHostNames = [ "paperless.zz" ];
   };
 

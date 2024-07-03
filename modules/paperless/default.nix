@@ -39,7 +39,7 @@ in {
       port = cfg.port;
     };
 
-    modules.traefik = { 
+    services.traefik = { 
       enable = true;
       routers.${cfg.name} = "http://127.0.0.1:${toString cfg.port}";
     };
