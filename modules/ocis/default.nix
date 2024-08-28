@@ -92,7 +92,7 @@ in {
         [ -e ${encryptionSecret} ] || ${openssl} rand -out ${encryptionSecret} 32 
         [ -e ${signingKey} ] || ${openssl} genpkey -algorithm RSA -out ${signingKey} -pkeyopt rsa_keygen_bits:4096
         [ -e ${cfg.configDir}/ocis.yaml ] || ${ocis} init --config-path ${cfg.configDir} --insecure true
-        chown -R ${toOwnership uids.ocis gids.ocis} ${cfg.stateDir}
+        # chown -R ${toOwnership uids.ocis gids.ocis} ${cfg.stateDir}
       '';
     };
 
