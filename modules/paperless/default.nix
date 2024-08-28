@@ -18,13 +18,10 @@ in {
       type = types.str;
       default = "paperless";
     }; 
-
-
     alias = mkOption { 
       type = types.anything; 
       default = null;
     };
-
     port = mkOption {
       type = types.port;
       default = 28981;  
@@ -39,16 +36,19 @@ in {
       settings = {
         PAPERLESS_OCR_LANGUAGE = "deu+eng";
         PAPERLESS_FILENAME_FORMAT="{created_year}/{correspondent}/{title}";
-        PAPERLESS_URL="https://${cfg.alias}";
+        PAPERLESS_URL="https://paperless.zz";
       };
       passwordFile = secrets.alphanumeric-secret.path;
       # address = traefik.hostName cfg.name; # this evaluates to "paperless.bender", which resolves to a TS IP. Traefik cannot reverse proxy to that for some reason
       port = cfg.port;
     };
 
-    services.traefik = { 
+    # Enable reverse proxy
+    services.traefik = {
       enable = true;
-      proxy = mkAlias cfg.name cfg.alias;
+      proxy = {
+        "${cfg.name}" = "http://127.0.0.1:${toString cfg.port}";
+      } // mkAlias cfg.name cfg.alias;
     };
 
     # Add admins to the paperless group
