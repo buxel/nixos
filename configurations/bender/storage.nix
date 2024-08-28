@@ -31,9 +31,9 @@ in {
   # TODO: make mountpoint immutable so it is not accidently written
 
   systemd.services.docker-ocis.unitConfig = {
-    RequiresMountsFor = "${config.modules.ocis.dataDir}/storage";
+    RequiresMountsFor = "${config.services.ocis.dataDir}/storage";
   };
-  modules.blobfuse.mounts."${config.modules.ocis.dataDir}/storage" = {
+  modules.blobfuse.mounts."${config.services.ocis.dataDir}/storage" = {
     configPath = config.age.secrets."blobfuse-yaml".path;
     container = "ocis";
     uid = config.ids.uids.ocis;

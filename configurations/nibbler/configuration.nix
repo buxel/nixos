@@ -13,12 +13,12 @@
   services.traefik.staticConfigOptions.log.level = "DEBUG";
   
   # Network
-  modules.tailscale.enable = true;
-  modules.ddns.enable = true;
-  modules.whoami.enable = true;
+  services.tailscale.enable = true;
+  # services.ddns.enable = true;
+  services.whoami.enable = true;
 
   # Custom DNS
-  modules.blocky.enable = true;
+  services.blocky.enable = true;
 
   # Allow vscode-remote to work on this system
   programs.nix-ld.enable = true;
@@ -31,14 +31,13 @@
     caPort = 1234;
   };
 
-  services.traefik = {
-    extraInternalHostNames = [ "paperless.zz" ];
-  };
+  # services.traefik = {
+  #   extraInternalHostNames = [ "paperless.zz" ];
+  # };
 
   modules.paperless = {
     enable = true;  
-    name = "paperless.zz";
+    alias = "paperless.zz";
   };
-
 
 }

@@ -8,7 +8,7 @@ let
   inherit (builtins) toString;
   inherit (this.lib) extraGroups;
   inherit (config.age) secrets;
-  inherit (config.services.traefik.lib) mkHostName mkLabels;
+  inherit (config.services.traefik.lib) mkAlias mkLabels;
 
 in {
 
@@ -18,10 +18,13 @@ in {
       type = types.str;
       default = "paperless";
     }; 
-    hostName = mkOption {
-      type = types.str;
-      default = (mkHostName cfg.name);
-    };   
+
+
+    alias = mkOption { 
+      type = types.anything; 
+      default = null;
+    };
+
     port = mkOption {
       type = types.port;
       default = 28981;  
@@ -33,10 +36,10 @@ in {
     services.paperless = {
       enable = true;
       package = pkgs.paperless-ngx;
-      extraConfig = {
+      settings = {
         PAPERLESS_OCR_LANGUAGE = "deu+eng";
         PAPERLESS_FILENAME_FORMAT="{created_year}/{correspondent}/{title}";
-        PAPERLESS_URL="https://$${cfg.hostName}";
+        PAPERLESS_URL="https://${cfg.alias}";
       };
       passwordFile = secrets.alphanumeric-secret.path;
       # address = traefik.hostName cfg.name; # this evaluates to "paperless.bender", which resolves to a TS IP. Traefik cannot reverse proxy to that for some reason
@@ -45,7 +48,7 @@ in {
 
     services.traefik = { 
       enable = true;
-      routers.${cfg.name} = "http://127.0.0.1:${toString cfg.port}";
+      proxy = mkAlias cfg.name cfg.alias;
     };
 
     # Add admins to the paperless group

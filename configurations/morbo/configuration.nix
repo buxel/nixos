@@ -24,11 +24,11 @@
   # Allow vscode-remote to work on this system
   programs.nix-ld.enable = true;
 
-  modules.tailscale.enable = true;
-  modules.ddns.enable = true;
+  services.tailscale.enable = true;
+  # modules.ddns.enable = true;
   
   # Services
-  modules.whoami.enable = true;
+  services.whoami.enable = true;
   # modules.cockpit.enable = true;
 
   services.traefik = {
@@ -40,7 +40,7 @@
     # name = "sonarr.zz"; # TODO: name is not supported anymore. use traefik config 
   };
 
-  modules.jellyfin = {
+  services.jellyfin = {
     enable = true;  
     # name = "jellyfin.zz";
   };

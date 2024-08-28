@@ -13,15 +13,15 @@
   services.traefik.staticConfigOptions.log.level = "DEBUG";
   
   # Network
-  modules.tailscale.enable = true;
-  modules.ddns.enable = true;
-  modules.whoami.enable = true;
+  services.tailscale.enable = true;
+  # modules.ddns.enable = true;
+  services.whoami.enable = true;
   # networking.extraHosts = "";
   networking.nameservers = [ "1.1.1.1" "9.9.9.9" ];
   # networking.nameservers = [ "100.101.148.41" ]; # TODO: Testing, remove later!
 
   # Custom DNS
-  modules.blocky.enable = true;
+  services.blocky.enable = true;
 
   # Allow vscode-remote to work on this system
   programs.nix-ld.enable = true;
@@ -35,7 +35,7 @@
   };
 
   # Ocis
-  modules.ocis = { 
+  services.ocis = { 
     enable = true;
     name = "cloud.zz";
   };
@@ -53,9 +53,9 @@
   # file."/mnt/photos/geocoding" = lib.mkForce null;
 
 
-  services.silverbullet-docker = { 
+  services.silverbullet = { 
     enable = true;
-     name = "wiki.zz"; 
+    #name = "wiki.zz"; 
   };
 
   services.traefik = {
