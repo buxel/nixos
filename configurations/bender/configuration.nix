@@ -44,7 +44,7 @@
   # Immich 
   services.immich = {
     enable = true;
-    name = "photos.zz";
+    alias = "photos.zz";
     dataDir = "/mnt/photos";
   };
   # Remove generation of the /geocoding dir because it breaks mounting at /mnt/photos

@@ -125,14 +125,14 @@ in {
 
       # Postgres extension pgvecto.rs required since Immich 1.91.0
       extraPlugins = [
-        (pkgs.postgresqlPackages.pgvecto-rs.override rec {
-          postgresql = config.services.postgresql.package;
-        })
-        # # Used this before pgvecto-rs was packaged in nixpkgs
-        # (pkgs.pgvecto-rs.override rec {
+        # (pkgs.postgresqlPackages.pgvecto-rs.override rec {
         #   postgresql = config.services.postgresql.package;
-        #   stdenv = postgresql.stdenv;
         # })
+        # Used this before pgvecto-rs was packaged in nixpkgs
+        (pkgs.pgvecto-rs.override rec {
+          postgresql = config.services.postgresql.package;
+          stdenv = postgresql.stdenv;
+        })
       ];
       settings.shared_preload_libraries = "vectors.so";
 
