@@ -59,9 +59,9 @@
   };
 
   services.traefik = {
+    proxy."wiki.zz" = "http://silverbullet.bender";
     extraInternalHostNames = [ "wiki.zz" "photos.zz" "cloud.zz"];
   };
-
 
 
   # modules.netdata.enable = true;
